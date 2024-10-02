@@ -5,8 +5,5 @@ import types
 
 # TCP Client code for the project
 
-HOST = '0.0.0.0' 
-
-def start_connection(host, port):
-    
-    return
+Static_HOST = '0.0.0.0'
+Static_PORT = 54321

@@ -6,4 +6,4 @@ import types
 # TCP Server code for the project
 
 HOST = '127.0.0.1' # The server's hostname or IP address to listen on all interfaces
-PORT = 60000     # The port used by the server
+PORT = 54321       # The port used by the server
