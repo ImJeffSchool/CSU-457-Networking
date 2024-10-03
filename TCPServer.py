@@ -3,6 +3,7 @@ import socket
 import selectors
 import types
 import logging
+import traceback
 
 # TCP Server code for the project
 # Basic Server Setup:
@@ -59,3 +60,27 @@ def handling_Incoming_Data (key, value):
 
 #def main():
 listening_Socket()
+
+try:
+    while True:
+        events = selector.select(timeout=None)
+        for key, value in events:
+            if key.data is None:
+                accept_connection(key.fileobj)
+            else:
+                message = key.data
+                try:
+                    print(message)
+                except Exception:
+                    print(
+                        "main: error: exception for",
+                        f"{message.addr}:\n{traceback.format_exc()}",
+                    )
+                    message.close()
+                
+    
+except KeyboardInterrupt:
+    print("caught keyboard interrupt, exiting")
+
+finally:
+    selector.close()

@@ -5,10 +5,11 @@ import types
 import traceback
 import struct
 import logging
+import linecache
 
 
 # TCP Client code for the project
-Static_HOST = '0.0.0.0'
+Static_HOST = '127.0.0.1'
 Static_PORT = 54321
 
 logging.basicConfig(filename='Client.log', level=logging.INFO)
@@ -23,15 +24,16 @@ def startConnection(Static_HOST, Static_PORT):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     errorNumber = sock.connect_ex(serverAddress)
-    if errorNumber == 0 :
-        print("Operation succeeded")
+    if errorNumber == 0 or errorNumber == 115 :
+        print("Operation succeeded") if errorNumber == 0 else print("Operation now in progress")
     else:
-        print('Unable to connect. Error code: ', errorNumber)
-        logging.info('Unable to connect. Error code: ', errorNumber)
+        errorLine = linecache.getline('./resources/TCPErrorNumbers.txt', errorNumber)
+        print('Unable to connect. Error code: ' + errorLine)
+        logging.info('Unable to connect. Error code: ' + errorLine)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    message1 = input("Enter a message you would like to send to the server")
+    message1 = input("Enter a message you would like to send to the server: ")
     message1.encode()
-    message2 = input("Enter another message you would like to send to the server")
+    message2 = input("Enter another message you would like to send to the server: ")
     message2.encode()
     messages = [message1, message2]
     sel.register(sock, events, data = messages)
