@@ -2,6 +2,9 @@ import sys
 import socket
 import selectors
 import types
+import logging
+
+import TCPClient
 
 # TCP Server code for the project
 # Basic Server Setup:
@@ -9,11 +12,28 @@ import types
 # 2. Implement a mechanism to handle multiple client connections simultaneously.
 # 3. Log connection and disconnection events.
 
-selector = selectors.DefaultSelector()
+logging.basicConfig(filename='Server.log', level=logging.INFO)
+selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
-HOST = '127.0.0.1' # The server's hostname or IP address to listen on all interfaces
-PORT = 54321       # The port used by the server
+HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
+PORT = 54321                           # The port used by the server
+# ^ Constants for now, but will be changed later
 
+#def main():
+    
+# Method for listening to incoming connections
+def listening_Socket():
+    listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    listen_Socket.bind((HOST, PORT))
+    listen_Socket.listen()
+    listen_Socket.setblocking(False)
+    selector.register(listen_Socket, selectors.EVENT_READ, data=None)
+    
+    print('Server is listening on: ', (HOST, PORT))
+    logging.info('Server is listening on: ', (HOST, PORT))
+
+# Method for accepting incoming connections
 def accept_connection(sock):
     connection, ipAddress = sock.accept()
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
@@ -21,4 +41,21 @@ def accept_connection(sock):
     
     connection.setblocking(False)
     print('Accepted connection from this client: ', ipAddress)
+    logging.info('Accepted connection from this client: ', ipAddress)
     selector.register(connection, server_Events, data=server_Data)
+    
+# Method for handling incoming data
+def handling_Incoming_Data (key, value):
+    socket = key.fileobj
+    data = value.data
+    
+    if value & selectors.EVENT_READ:
+        # Might need to increase buffe size based on data in the future
+        incoming_Data = socket.recv(1028)
+        if incoming_Data:
+            data.outgoing_Data += incoming_Data
+        else:
+            print('Closing connection to: ', data.ipAddress)
+            logging.info('Closing connection to: ', data.ipAddress)
+            selector.unregister(socket)
+            socket.close()
