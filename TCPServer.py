@@ -27,8 +27,8 @@ def listening_Socket():
     listen_Socket.setblocking(False)
     selector.register(listen_Socket, selectors.EVENT_READ, data=None)
     
-    print('Server is listening on: ', (HOST, PORT))
-    logging.info("Server is listening on: ".join((HOST, str(PORT))))
+    print(' Server is listening on: ', (HOST, PORT))
+    logging.info(" Server is listening on: ".join((HOST, str(PORT))))
 
 # Method for accepting incoming connections
 def accept_connection(sock):
@@ -37,8 +37,8 @@ def accept_connection(sock):
     server_Data = types.SimpleNamespace(addr=ipAddress, input_Data=b"", output_Data=b"")
     
     connection.setblocking(False)
-    print('Accepted connection from this client: ', ipAddress)
-    logging.info('Accepted connection from this client: ', ipAddress)
+    print(' Accepted connection from this client: ', ipAddress)
+    logging.info(' Accepted connection from this client: ', ipAddress)
     selector.register(connection, server_Events, data=server_Data)
     
 # Method for handling incoming data
@@ -47,18 +47,21 @@ def handling_Incoming_Data (key, value):
     data = value.data
     
     if value & selectors.EVENT_READ:
-        # Might need to increase buffe size based on data in the future
+        # Might need to increase buffe size based on data in the future?
         incoming_Data = socket.recv(1028)
         if incoming_Data:
             data.outgoing_Data += incoming_Data
         else:
-            print('Closing connection to: ', data.ipAddress)
-            logging.info('Closing connection to: ', data.ipAddress)
+            print(' Closing connection to: ', data.ipAddress)
+            logging.info(' Closing connection to: ', data.ipAddress)
             selector.unregister(socket)
             socket.close()
-
-
-#def main():
+    if value & selectors.EVENT_WRITE:
+        if data.outgoing_Data:
+            sent_Data = socket.send(data.outgoing_Data)
+            data.outgoing_Data = data.outgoing_Data[sent_Data:]
+            
+# Main method for the server
 listening_Socket()
 
 try:
@@ -76,11 +79,13 @@ try:
                         "main: error: exception for",
                         f"{message.addr}:\n{traceback.format_exc()}",
                     )
+                    logging.info(
+                        "main: error: exception for",
+                        f"{message.addr}:\n{traceback.format_exc()}",
+                    )
                     message.close()
-                
-    
-except KeyboardInterrupt:
+except KeyboardInterrupt:   
     print("caught keyboard interrupt, exiting")
-
+    logging.info("caught keyboard interrupt, exiting") 
 finally:
     selector.close()
