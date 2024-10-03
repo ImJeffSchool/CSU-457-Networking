@@ -4,8 +4,6 @@ import selectors
 import types
 import logging
 
-import TCPClient
-
 # TCP Server code for the project
 # Basic Server Setup:
 # 1. Create a server-side application that listens for incoming client connections on a specified port.
@@ -19,8 +17,6 @@ HOST = '127.0.0.1'                     # The server's hostname or IP address to 
 PORT = 54321                           # The port used by the server
 # ^ Constants for now, but will be changed later
 
-#def main():
-    
 # Method for listening to incoming connections
 def listening_Socket():
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,7 +27,7 @@ def listening_Socket():
     selector.register(listen_Socket, selectors.EVENT_READ, data=None)
     
     print('Server is listening on: ', (HOST, PORT))
-    logging.info('Server is listening on: ', (HOST, PORT))
+    logging.info("Server is listening on: ".join((HOST, str(PORT))))
 
 # Method for accepting incoming connections
 def accept_connection(sock):
@@ -59,3 +55,7 @@ def handling_Incoming_Data (key, value):
             logging.info('Closing connection to: ', data.ipAddress)
             selector.unregister(socket)
             socket.close()
+
+
+#def main():
+listening_Socket()

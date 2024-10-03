@@ -6,7 +6,6 @@ import traceback
 import struct
 import logging
 
-import TCPServer
 
 # TCP Client code for the project
 Static_HOST = '0.0.0.0'
@@ -20,7 +19,7 @@ sel = selectors.DefaultSelector()
 def startConnection(Static_HOST, Static_PORT):
     serverAddress = (Static_HOST, Static_PORT)
     print('Starting connection to ', serverAddress)
-    logging.info('Starting connection to ', serverAddress)
+    logging.info('Starting connection to '.join((Static_HOST, str(Static_PORT))))
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     errorNumber = sock.connect_ex(serverAddress)
