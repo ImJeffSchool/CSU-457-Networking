@@ -24,8 +24,8 @@ def startConnection(Static_HOST, Static_PORT):
     sock.setblocking(False)
     errorNumber = sock.connect_ex(serverAddress)
     if errorNumber == 0 :
-        print("IDK WHAT TO PUT HERE")
-    elif errorNumber == 1:
+        print("Operation succeeded")
+    else:
         print('Unable to connect. Error code: ', errorNumber)
         logging.info('Unable to connect. Error code: ', errorNumber)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
