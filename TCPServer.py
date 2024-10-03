@@ -74,6 +74,7 @@ try:
                 message = key.data
                 try:
                     print(message)
+                    #change this to process the read/write and print the message
                 except Exception:
                     print(
                         "main: error: exception for",

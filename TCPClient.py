@@ -7,7 +7,7 @@ import struct
 import logging
 import linecache
 
-import Messaging
+import ClientMessaging
 
 
 # TCP Client code for the project
@@ -34,7 +34,7 @@ def startConnection(Static_HOST, Static_PORT):
         logging.info('Unable to connect. Error code: ' + errorLine)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     
-    messages = Messaging.Message(sel, sock, serverAddress)
+    messages = ClientMessaging.Message(sel, sock, serverAddress)
     messages.createMessage()
     sel.register(sock, events, data = messages)
     
