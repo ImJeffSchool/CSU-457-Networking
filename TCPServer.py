@@ -50,16 +50,16 @@ def handling_Incoming_Data (key, value):
         # Might need to increase buffe size based on data in the future?
         incoming_Data = socket.recv(1028)
         if incoming_Data:
-            data.outgoing_Data += incoming_Data
+            data.output_Data += incoming_Data
         else:
-            print(' Closing connection to: ', data.ipAddress)
-            logging.info(f" Closing connection to: {data.ipAddress}")
+            print(' Closing connection to: ', data.addr)
+            logging.info(f" Closing connection to: {data.addr}")
             selector.unregister(socket)
             socket.close()
     if value & selectors.EVENT_WRITE:
         if data.output_Data:
-            sent_Data = socket.send(data.outgoing_Data)
-            data.outgoing_Data = data.outgoing_Data[sent_Data:]
+            sent_Data = socket.send(data.output_Data)
+            data.output_Data = data.output_Data[sent_Data:]
             
 # Main method for the server
 listening_Socket()

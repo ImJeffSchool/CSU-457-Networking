@@ -47,3 +47,14 @@ class Message:
             self.read()
         if value & selectors.EVENT_WRITE:
             self.write()
+            
+    def close(self):
+        print("closing connection to", self.addr)
+        logging.info("closing connection to "+ str(self.addr))
+        try:
+            self.selector.unregister(self.sock)
+        except Exception as e:
+            print(
+                f"error: selector.unregister() exception for",
+                f"{self.addr}: {repr(e)}",
+            )

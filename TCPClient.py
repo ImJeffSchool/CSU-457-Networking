@@ -50,7 +50,7 @@ try:
                     "main: error: exception for",
                     f"{message.addr}:\n{traceback.format_exc()}",
                 )
-                logging.info('main: error: exception for' .join(message.addr, str(traceback.format_exc())))
+                logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
                 message.close()
         # Check for a socket being monitored to continue.
         if not sel.get_map():
