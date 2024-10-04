@@ -27,7 +27,6 @@ class Message:
                 logging.info('Peer closed.')
                 raise RuntimeError("Peer closed.")
             
-        
     def write(self):
         if self._send_buffer:
             print("sending", repr(self._send_buffer), "to", self.addr) 
@@ -42,13 +41,9 @@ class Message:
                 self._send_buffer = self._send_buffer[dataSent:]
                 if dataSent and not self._send_buffer:
                     self.close()
-
-            
+        
     def processReadWrite(self, value):
         if value & selectors.EVENT_READ:
             self.read()
         if value & selectors.EVENT_WRITE:
             self.write()
-            
-    
-    

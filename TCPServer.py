@@ -28,7 +28,7 @@ def listening_Socket():
     selector.register(listen_Socket, selectors.EVENT_READ, data=None)
     
     print(' Server is listening on: ', (HOST, PORT))
-    logging.info(" Server is listening on: ".join((HOST, str(PORT))))
+    logging.info(" Server is listening on: {HOST}:{PORT}")
 
 # Method for accepting incoming connections
 def accept_connection(sock):
@@ -37,14 +37,14 @@ def accept_connection(sock):
     server_Data = types.SimpleNamespace(addr=ipAddress, input_Data=b"", output_Data=b"")
     
     connection.setblocking(False)
-    print(' Accepted connection from this client: ', ipAddress)
-    logging.info(' Accepted connection from this client: ', ipAddress)
+    print('Accepted connection from this client: ', ipAddress)
+    logging.info(f"Accepted connection from this client: {ipAddress}")
     selector.register(connection, server_Events, data=server_Data)
     
 # Method for handling incoming data
 def handling_Incoming_Data (key, value):
     socket = key.fileobj
-    data = value.data
+    data = key.data
     
     if value & selectors.EVENT_READ:
         # Might need to increase buffe size based on data in the future?
@@ -53,11 +53,11 @@ def handling_Incoming_Data (key, value):
             data.outgoing_Data += incoming_Data
         else:
             print(' Closing connection to: ', data.ipAddress)
-            logging.info(' Closing connection to: ', data.ipAddress)
+            logging.info(f" Closing connection to: {data.ipAddress}")
             selector.unregister(socket)
             socket.close()
     if value & selectors.EVENT_WRITE:
-        if data.outgoing_Data:
+        if data.output_Data:
             sent_Data = socket.send(data.outgoing_Data)
             data.outgoing_Data = data.outgoing_Data[sent_Data:]
             
@@ -71,20 +71,11 @@ try:
             if key.data is None:
                 accept_connection(key.fileobj)
             else:
-                message = key.data
-                try:
-                    print(message)
-                    #change this to process the read/write and print the message
-                except Exception:
-                    print(
-                        "main: error: exception for",
-                        f"{message.addr}:\n{traceback.format_exc()}",
-                    )
-                    logging.info(
-                        "main: error: exception for",
-                        f"{message.addr}:\n{traceback.format_exc()}",
-                    )
-                    message.close()
+                handling_Incoming_Data(key, value)
+except Exception as e:
+    print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
+    logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
+    key.fileobj.close()
 except KeyboardInterrupt:   
     print("caught keyboard interrupt, exiting")
     logging.info("caught keyboard interrupt, exiting") 

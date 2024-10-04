@@ -9,7 +9,6 @@ import linecache
 
 import ClientMessaging
 
-
 # TCP Client code for the project
 Static_HOST = '127.0.0.1'
 Static_PORT = 54321
@@ -17,7 +16,6 @@ Static_PORT = 54321
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 
 sel = selectors.DefaultSelector()
-
 
 def startConnection(Static_HOST, Static_PORT):
     serverAddress = (Static_HOST, Static_PORT)
@@ -38,7 +36,6 @@ def startConnection(Static_HOST, Static_PORT):
     messages.createMessage()
     sel.register(sock, events, data = messages)
     
-
 startConnection(Static_HOST, Static_PORT)
 
 try:
@@ -63,6 +60,3 @@ except KeyboardInterrupt:
     logging.info('caught keyboard interrupt, exiting')
 finally:
     sel.close
-
-
-
