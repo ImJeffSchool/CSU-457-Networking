@@ -22,3 +22,36 @@ This is a simple Game show example implemented using Python and sockets.
 **Additional resources:**
 * Tkinter: https://docs.python.org/3/library/tkinter.html
 * [Link to sockets tutorial]
+
+Defined request JSON Schema:
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action"
+  ]
+}
+
+Defined response JSON Schema:
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "value"
+  ]
+}
