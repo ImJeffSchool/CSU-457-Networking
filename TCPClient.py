@@ -34,11 +34,14 @@ def create_request(action, value=None):
 
 def startConnection(Static_HOST, Static_PORT):
     serverAddress = (Static_HOST, Static_PORT)
+    
     print('Starting connection to ', serverAddress)
     logging.info('Starting connection to '.join((Static_HOST, str(Static_PORT))))
+    
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     errorNumber = sock.connect_ex(serverAddress)
+    
     if errorNumber == 0 or errorNumber == 115 :
         print("Operation succeeded") if errorNumber == 0 else print("Operation now in progress")
     else:
@@ -56,9 +59,9 @@ startConnection(Static_HOST, Static_PORT)
 print("Welcome! Lets get you connected. \n"
         + "Here are some options if you need help\n"
         + "-h for help on how to connect and play\n"
-        + "-i for the ip address of the server"
-        + "-p for the listening port of the server"
-        + "-n for the DNS name of the server")
+        + "-i for the ip address of the server\n"
+        + "-p for the listening port of the server\n"
+        + "-n for the DNS name of the server\n")
 
 action = input("Please ready up with \"Ready\" or choose on of the options listed: ")
 returnDict = create_request(action)
