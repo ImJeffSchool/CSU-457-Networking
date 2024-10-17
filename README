@@ -55,3 +55,12 @@ Defined response JSON Schema:
     "value"
   ]
 }
+
+
+
+
+request JSON:
+select, ready, quit, answerQuestions, 
+
+response JSON
+provideQuestion, validateAnswer, provideAnswer
