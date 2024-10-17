@@ -5,7 +5,7 @@ class Jeopardy:
     def __init__(self):
         self.liveGame = False
         self.playerList = []
-        self.qList = []
+        self.questionsANDanswers = Question.Question()
 
     def toggleLiveGame(self):
         self.liveGame = True if not self.liveGame else self.liveGame = False

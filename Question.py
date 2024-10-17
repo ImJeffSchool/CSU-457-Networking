@@ -18,15 +18,31 @@ class Question:
                             ["Question41", "Question42", "Question43", "Question44", "Question45"],
                             ["Question46", "Question47", "Question48", "Question49", "Question50"],
                             ))
+        self.aList1 = np.array((
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ))
+        self.aList2 = np.array((
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ["Answer", "Answer", "Answer", "Answer", "Answer"],
+                            ))
         self.currentQuestionBoard = np.array([])
+        self.chooseRandomQuestionBank()
         
     def chooseRandomQuestionBank(self):
         randNum = random.randint(1,2)
         if randNum == 1:
             self.currentQuestionBoard = self.questionBoard1
+            self.currentAnswerList = self.aList1
         elif randNum == 2:
             self.currentQuestionBoard = self.questionBoard2
-            
+            self.currentAnswerList = self.aList2
             
     def printQuestionBoard(self):
         print(self.currentQuestionBoard)
