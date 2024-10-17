@@ -4,12 +4,18 @@ import selectors
 import types
 import logging
 import traceback
+import Question
 
 # TCP Server code for the project
 # Basic Server Setup:
 # 1. Create a server-side application that listens for incoming client connections on a specified port.
 # 2. Implement a mechanism to handle multiple client connections simultaneously.
 # 3. Log connection and disconnection events.
+
+currentBoard = Question.Question()
+currentBoard.chooseRandomQuestionBank()
+
+
 
 logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
