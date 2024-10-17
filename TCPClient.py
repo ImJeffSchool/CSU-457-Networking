@@ -15,8 +15,22 @@ Static_HOST = '127.0.0.1'
 Static_PORT = 54321
 
 logging.basicConfig(filename='Client.log', level=logging.INFO)
-
 sel = selectors.DefaultSelector()
+
+def create_request(action, value):
+    match action:
+        case "Ready":
+            return dict(
+            type="text/json",
+            encoding="utf-8",
+            content=dict(action=action),
+        )
+        case _:
+            return dict(
+            type="text/json",
+            encoding="utf-8",
+            content=dict(action=action, value = value),
+        )  
 
 def startConnection(Static_HOST, Static_PORT):
     serverAddress = (Static_HOST, Static_PORT)
