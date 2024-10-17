@@ -16,7 +16,6 @@ currentBoard = Question.Question()
 currentBoard.chooseRandomQuestionBank()
 
 
-
 logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
