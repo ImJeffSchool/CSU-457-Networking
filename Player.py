@@ -13,11 +13,12 @@ class Player:
     def _subPoints(self, points): 
         self.points -= points
 
-    def askQuestion(self, questionVal):
+    # def askQuestion(self, questionVal):
         # need to fill out for json
 
     def toggleReady(self):
-        self.isReady = True if self.isReady == False else self.isReady = False
+        if self.isReady == False: self.isReady = True
+        else: self.isReady = False 
 
-    def answerQuestion(self, answer):
+    # def answerQuestion(self, answer):
         # need to fill out for json

@@ -8,7 +8,8 @@ class Jeopardy:
         self.questionsANDanswers = Question.Question()
 
     def toggleLiveGame(self):
-        self.liveGame = True if not self.liveGame else self.liveGame = False
+        if self.liveGame == False: self.liveGame = True
+        else: self.liveGame = False
 
     def addPlayer(self, player):
         self.playerList.add(player)

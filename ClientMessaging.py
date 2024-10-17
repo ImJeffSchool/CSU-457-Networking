@@ -16,7 +16,7 @@ class Message:
         self._send_buffer = b""
         
     def createMessage(self):
-        message1 = input("Enter a message you would like to send to the server: ")
+        message1 = input("Enter a message you would like to send to the server: ")        
         message1 = message1.encode()
         #messages = [message1, message2]
         self._send_buffer += message1

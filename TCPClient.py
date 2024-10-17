@@ -17,20 +17,20 @@ Static_PORT = 54321
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
 
-def create_request(action, value):
-    match action:
-        case "Ready":
-            return dict(
-            type="text/json",
-            encoding="utf-8",
-            content=dict(action=action),
-        )
-        case _:
-            return dict(
-            type="text/json",
-            encoding="utf-8",
-            content=dict(action=action, value = value),
-        )  
+def create_request(action, value=None):
+    common_dict = {
+        "type": "text/json",
+        "encoding": "utf-8"
+    }
+
+    if action == "Ready": common_dict["content"] = {"action": action}
+    elif action == "-i": common_dict["content"] = {"action": action}
+    elif action == "-p": common_dict["content"] = {"action": action}
+    elif action == "-n": common_dict["content"] = {"action": action}
+    elif action == "-h": common_dict["content"] = {"action": action}
+    else: common_dict["content"] = {"action": action, "value": value}
+
+    return common_dict
 
 def startConnection(Static_HOST, Static_PORT):
     serverAddress = (Static_HOST, Static_PORT)
@@ -48,10 +48,21 @@ def startConnection(Static_HOST, Static_PORT):
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     
     messages = ClientMessaging.Message(sel, sock, serverAddress)
-    messages.createMessage()
+    #messages.createMessage()
     sel.register(sock, events, data = messages)
     
 startConnection(Static_HOST, Static_PORT)
+
+print("Welcome! Lets get you connected. \n"
+        + "Here are some options if you need help\n"
+        + "-h for help on how to connect and play\n"
+        + "-i for the ip address of the server"
+        + "-p for the listening port of the server"
+        + "-n for the DNS name of the server")
+
+action = input("Please ready up with \"Ready\" or choose on of the options listed: ")
+returnDict = create_request(action)
+print(repr(returnDict))
 
 try:
     while True:
