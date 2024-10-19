@@ -99,6 +99,7 @@ except Exception as e:
     key.fileobj.close()
 except KeyboardInterrupt:   
     print("caught keyboard interrupt, exiting")
-    logging.info("caught keyboard interrupt, exiting") 
+    logging.info("caught keyboard interrupt, exiting")
+    logging.info(f"Client list: {client_List}") 
 finally:
     selector.close()
