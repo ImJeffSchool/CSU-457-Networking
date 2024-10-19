@@ -32,7 +32,7 @@ def create_request(action, value=None):
 
     return common_dict
 
-def startConnection(Static_HOST, Static_PORT):
+def startConnection(Static_HOST, Static_PORT, request):
     serverAddress = (Static_HOST, Static_PORT)
     
     print('Starting connection to ', serverAddress)
@@ -50,22 +50,22 @@ def startConnection(Static_HOST, Static_PORT):
         logging.info('Unable to connect. Error code: ' + errorLine)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     
-    messages = ClientMessaging.Message(sel, sock, serverAddress)
-    #messages.createMessage()
+    messages = ClientMessaging.Message(sel, sock, serverAddress, request)
     sel.register(sock, events, data = messages)
     
-startConnection(Static_HOST, Static_PORT)
 
-print("Welcome! Lets get you connected. \n"
+print("Welcome! Let's get you connected. \n"
         + "Here are some options if you need help\n"
         + "-h for help on how to connect and play\n"
         + "-i for the ip address of the server\n"
         + "-p for the listening port of the server\n"
         + "-n for the DNS name of the server\n")
 
-action = input("Please ready up with \"Ready\" or choose on of the options listed: ")
-returnDict = create_request(action)
-print(repr(returnDict))
+action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
+request = create_request(action)
+startConnection(Static_HOST, Static_PORT, request)
+
+print(repr(request))
 
 try:
     while True:

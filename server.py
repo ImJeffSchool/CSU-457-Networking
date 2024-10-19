@@ -7,6 +7,7 @@ import traceback
 import Question
 import Player
 import Jeopardy
+import ServerMessaging
 
 # TCP Server code for the project
 # Basic Server Setup:
@@ -24,6 +25,7 @@ HOST = '127.0.0.1'                     # The server's hostname or IP address to 
 PORT = 54321                           # The port used by the server
 # ^ Constants for now, but will be changed later
 
+
 # Method for listening to incoming connections
 def listening_Socket():
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,21 +42,27 @@ def listening_Socket():
 def accept_connection(sock):
     connection, ipAddress = sock.accept()
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    server_Data = types.SimpleNamespace(addr=ipAddress, input_Data=b"", output_Data=b"")
+    #server_Data = types.SimpleNamespace(addr=ipAddress, input_Data=b"", output_Data=b"")
+    message = ServerMessaging.Message(selector, connection, ipAddress)
     
     connection.setblocking(False)
     print('Accepted connection from this client: ', ipAddress)
     logging.info(f"Accepted connection from this client: {ipAddress}")
-    selector.register(connection, server_Events, data=server_Data)
+    selector.register(connection, server_Events, data=message)
     
+    
+    
+def startGame():
+    print("TODO: Create the gameplay functionality")
+        
 # Method for handling incoming data
-def handling_Incoming_Data (key, value):
+def handling_Incoming_Data (key, value = None):
     socket = key.fileobj
     data = key.data
     
     if value & selectors.EVENT_READ:
-        # Might need to increase buffe size based on data in the future?
-        incoming_Data = socket.recv(1028)
+        # Might need to increase buffer size based on data in the future?
+        incoming_Data = socket.recv(1028)  
         if incoming_Data:
             data.output_Data += incoming_Data
         else:
@@ -62,6 +70,8 @@ def handling_Incoming_Data (key, value):
             logging.info(f" Closing connection to: {data.addr}")
             selector.unregister(socket)
             socket.close()
+        
+  
     if value & selectors.EVENT_WRITE:
         if data.output_Data:
             sent_Data = socket.send(data.output_Data)
@@ -77,7 +87,9 @@ try:
             if key.data is None:
                 accept_connection(key.fileobj)
             else:
-                handling_Incoming_Data(key, value)
+                message = key.data
+                message.processReadWrite(value)
+                #handling_Incoming_Data(key, value)
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
