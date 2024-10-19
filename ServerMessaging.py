@@ -4,6 +4,8 @@ import json
 import io
 import struct
 import logging
+import Jeopardy
+import Player
 
 logging.basicConfig(filename='Message.log', level=logging.INFO)
 
@@ -19,7 +21,9 @@ class Message:
         self.request = None
         self.response_created = False
         
-    
+    def getJson(self):
+        return self.request
+        
     def read(self):
         try:
             data = self.sock.recv(4096)
@@ -44,11 +48,9 @@ class Message:
                 self.processRequest()
             
     def write(self):
-        '''
         if self.request:
             if not self.response_created:
-                self.create_response()
-        '''
+                self.createResponse()
         
         if self._send_buffer:
             print("sending", repr(self._send_buffer), "to", self.addr) 
@@ -63,6 +65,12 @@ class Message:
                 self._send_buffer = self._send_buffer[dataSent:]
                 if dataSent and not self._send_buffer:
                     self.close()
+    
+        
+    def createResponse(self):
+        print("issues here: ")
+    
+        
         
     def processReadWrite(self, value = None):
         if value & selectors.EVENT_READ:
@@ -80,23 +88,31 @@ class Message:
         encoding = self.jsonheader["content-encoding"]
         self.request = self._json_decode(data, encoding)
         print("received request", repr(self.request), "from", self.addr)
-        action = self.request["action"]
+        
         
         #switch statements only available in python 3.10 and later
         #(SSH python is version 3.6)
+        
+        '''
+        action = self.request["action"]
+        
         if action == "Ready":
             print("add logic to begin game")
-        elif action == "h":
-            print("add some help commands")
-        elif action == "i":
+            
+            
+            
+        elif action == "-h":
+            print("Welcome to Jeopardy!. When you are ready to play the game please ")
+        elif action == "-i":
             #hard coded for now, is a static variable in server.py
             print("The IP address of the server is: 127.0.0.1")    
-        elif action == "p":
+        elif action == "-p":
             #also hard coded for now
             print("the listening port of the server is: 54321")
-        elif action == "n":
+        elif action == "-n":
             #i have no idea
             print("The DNS name of the server is: ???")
+        '''
             
         
     # Set selector to listen for write events, we're done reading.
@@ -121,6 +137,9 @@ class Message:
         obj = json.load(tiow)
         tiow.close()
         return obj
+    
+    def _json_encode(self, obj, encoding):
+        return json.dumps(obj, ensure_ascii=False).encode(encoding)
     
     def process_jsonheader(self):
         hdrlen = self._jsonheader_len

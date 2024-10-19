@@ -1,7 +1,7 @@
 class Player:
-    def __init__(self, name, points):
+    def __init__(self, name):
         self.name = name
-        self.points = points
+        self.points = 0
         self.request_queued = False
         self.request = None
         self.response = None
@@ -22,3 +22,4 @@ class Player:
 
     # def answerQuestion(self, answer):
         # need to fill out for json
+        

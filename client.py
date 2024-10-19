@@ -17,6 +17,16 @@ Static_PORT = 54321
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
 
+
+def handling_Incoming_Data(key, value = None) :
+    message = key.data
+    
+    if value & selectors.EVENT_READ:
+        print("repr of message obj (client): ", repr(message))
+        message.processReadWrite(value)
+    if value & selectors.EVENT_WRITE:
+        print("Do another create request and sent it off")
+
 def create_request(action, value=None):
     common_dict = {
         "type": "text/json",
@@ -28,7 +38,10 @@ def create_request(action, value=None):
     elif action == "-p": common_dict["content"] = {"action": action}
     elif action == "-n": common_dict["content"] = {"action": action}
     elif action == "-h": common_dict["content"] = {"action": action}
-    else: common_dict["content"] = {"action": action, "value": value}
+    if value : 
+        common_dict["content"] = {"action": action, "value": value}
+        
+    #else: common_dict["content"] = {"action": action, "value": value}
 
     return common_dict
 
@@ -62,7 +75,9 @@ print("Welcome! Let's get you connected. \n"
         + "-n for the DNS name of the server\n")
 
 action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
-request = create_request(action)
+action, value = action.split(" ")
+
+request = create_request(action, value)
 startConnection(Static_HOST, Static_PORT, request)
 
 print(repr(request))
@@ -74,13 +89,15 @@ try:
             message = key.data
             try:
                 message.processReadWrite(value)
+                #handling_Incoming_Data(key, value)
             except Exception:
+                print(" ")
                 print(
                     "main: error: exception for",
                     f"{message.addr}:\n{traceback.format_exc()}",
                 )
                 logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
-                message.close()
+                #message.close()
         # Check for a socket being monitored to continue.
         if not sel.get_map():
             break

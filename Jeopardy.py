@@ -12,4 +12,7 @@ class Jeopardy:
         else: self.liveGame = False
 
     def addPlayer(self, player):
-        self.playerList.add(player)
+        self.playerList.append(player)
+        
+    def getNumPlayers(self):
+        return len(self.playerList)

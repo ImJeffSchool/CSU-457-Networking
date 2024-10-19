@@ -8,6 +8,7 @@ import Question
 import Player
 import Jeopardy
 import ServerMessaging
+import struct
 
 # TCP Server code for the project
 # Basic Server Setup:
@@ -18,11 +19,14 @@ import ServerMessaging
 currentBoard = Question.Question()
 currentBoard.chooseRandomQuestionBank()
 
+gameInstance = Jeopardy.Jeopardy()
+
 logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
 HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
 PORT = 54321                           # The port used by the server
+MAX_NUM_CLIENTS = 4
 # ^ Constants for now, but will be changed later
 
 client_List = []
@@ -53,14 +57,73 @@ def accept_connection(sock):
     logging.info(f"Accepted connection from this client: {ipAddress}")
     selector.register(connection, server_Events, data=message)
     
+    numPlayers = gameInstance.getNumPlayers()
+    givenPlayer = Player.Player("Player" + str(numPlayers+1))
+    gameInstance.addPlayer(givenPlayer)
+    numPlayers = gameInstance.getNumPlayers()
+    
+    
+    
 def startGame():
     print("TODO: Create the gameplay functionality")
         
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
-    socket = key.fileobj
-    data = key.data
+    message = key.data
     
+    if value & selectors.EVENT_READ:
+        print("repr of message obj: ", repr(message))
+        message.processReadWrite(value)
+
+    if value & selectors.EVENT_WRITE:
+        if gameInstance.liveGame == False:
+            
+            message.processReadWrite(value)
+            
+            print("repr of message: ", repr(message))
+            content = "Waiting for more players to connect..."
+            contentBytes = message._json_encode(content, "utf-8")
+            
+            jsonheader = {
+            "byteorder": sys.byteorder,
+            "content-type": "text/json",
+            "content-encoding": "utf-8",
+            "content-length": len(contentBytes),
+            }
+            
+            jsonheaderBytes = message._json_encode(jsonheader, "utf-8")
+            message_hdr = struct.pack(">H", len(jsonheaderBytes))
+            
+            resp = message_hdr + jsonheaderBytes + contentBytes
+
+            message._send_buffer = resp
+            message.sock.send(message._send_buffer)
+            
+            
+            message.toggleReadWriteMode("r")
+
+    
+    
+    '''
+    jsonObject = message.getJson()
+    
+    if jsonObject["action"] == "Ready":
+        name = input("Creating a new player to the game! What is your name")
+    '''    
+        
+        
+    '''
+    name = input("Creating a new player to the game! What is your name")
+    givenPlayer = Player.Player(name)
+    gameInstance.addPlayer(givenPlayer)
+    numPlayers = gameInstance.getNumPlayers()
+
+    if numPlayers < 2:
+        print("Need to call create response and ask for more Ready requests here")
+    '''
+    
+    
+    '''
     if value & selectors.EVENT_READ:
         # Might need to increase buffer size based on data in the future?
         incoming_Data = socket.recv(1028)  
@@ -72,12 +135,11 @@ def handling_Incoming_Data (key, value = None):
             selector.unregister(socket)
             socket.close()
         
-  
     if value & selectors.EVENT_WRITE:
         if data.output_Data:
             sent_Data = socket.send(data.output_Data)
             data.output_Data = data.output_Data[sent_Data:]
-            
+    '''
 # Main method for the server
 listening_Socket()
 
@@ -88,9 +150,7 @@ try:
             if key.data is None:
                 accept_connection(key.fileobj)
             else:
-                message = key.data
-                message.processReadWrite(value)
-                #handling_Incoming_Data(key, value)
+                handling_Incoming_Data(key, value)
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
