@@ -25,6 +25,7 @@ HOST = '127.0.0.1'                     # The server's hostname or IP address to 
 PORT = 54321                           # The port used by the server
 # ^ Constants for now, but will be changed later
 
+client_List = []
 
 # Method for listening to incoming connections
 def listening_Socket():
@@ -36,7 +37,7 @@ def listening_Socket():
     selector.register(listen_Socket, selectors.EVENT_READ, data=None)
     
     print(' Server is listening on: ', (HOST, PORT))
-    logging.info(" Server is listening on: {HOST}:{PORT}")
+    logging.info(f" Server is listening on: {HOST}:{PORT}")
 
 # Method for accepting incoming connections
 def accept_connection(sock):
@@ -46,11 +47,11 @@ def accept_connection(sock):
     message = ServerMessaging.Message(selector, connection, ipAddress)
     
     connection.setblocking(False)
+    client_List.append(ipAddress)
+    logging.info(f"Client list: {client_List}")
     print('Accepted connection from this client: ', ipAddress)
     logging.info(f"Accepted connection from this client: {ipAddress}")
     selector.register(connection, server_Events, data=message)
-    
-    
     
 def startGame():
     print("TODO: Create the gameplay functionality")
@@ -93,6 +94,8 @@ try:
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
+    client_List.remove(key.data.addr)
+    logging.info(f"Client list: {client_List}")
     key.fileobj.close()
 except KeyboardInterrupt:   
     print("caught keyboard interrupt, exiting")
