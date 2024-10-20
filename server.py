@@ -16,9 +16,6 @@ import struct
 # 2. Implement a mechanism to handle multiple client connections simultaneously.
 # 3. Log connection and disconnection events.
 
-currentBoard = Question.Question()
-currentBoard.chooseRandomQuestionBank()
-
 gameInstance = Jeopardy.Jeopardy()
 
 logging.basicConfig(filename='Server.log', level=logging.INFO)
@@ -30,6 +27,37 @@ MAX_NUM_CLIENTS = 4
 # ^ Constants for now, but will be changed later
 
 client_List = []
+
+def clientMsgBlast():
+    # send to all clients at once
+    print("Into clientMsgBlast\n")
+    for client in client_List:
+        try:
+            currSock = client.sock
+            serverBlstMsg = ServerMessaging.Message(selector, currSock, client)
+            print("selector, currsock, client are: ", selector, currSock, client)
+            content = {
+                "action": "blast",
+                "value": "this is a blast ttest"
+            }
+            contentBytes = serverBlstMsg._json_encode(content, "utf-8")
+            jsonheader = {
+                "byteorder": sys.byteorder,
+                "content-type": "text/json",
+                "content-encoding": "utf-8",
+                "content-length": len(contentBytes),
+            }
+            jsonheaderBytes = serverBlstMsg._json_encode(jsonheader, "utf-8")
+            messageHeader = struct.pack(">H", len(jsonheaderBytes))
+            message = messageHeader + jsonheaderBytes + contentBytes
+            #serverBlstMsg.response_created = True
+            serverBlstMsg._recv_buffer += message
+            print("serverBlstMsg._recv_buffer is: ",serverBlstMsg._recv_buffer)
+            serverBlstMsg.toggleReadWriteMode('r')
+            serverBlstMsg.processReadWrite()
+        except Exception as e:
+            print("error is: ", e)
+            logging.info("Ran into trouble on the blast message")
 
 # Method for listening to incoming connections
 def listening_Socket():
@@ -51,19 +79,19 @@ def accept_connection(sock):
     message = ServerMessaging.Message(selector, connection, ipAddress)
     
     connection.setblocking(False)
-    client_List.append(ipAddress)
+    client_List.append(message)
     logging.info(f"Client list: {client_List}")
     print('Accepted connection from this client: ', ipAddress)
     logging.info(f"Accepted connection from this client: {ipAddress}")
     selector.register(connection, server_Events, data=message)
-    
-    numPlayers = gameInstance.getNumPlayers()
-    givenPlayer = Player.Player("Player" + str(numPlayers+1))
+
+    givenPlayer = Player.Player("Player" + str(gameInstance.getNumPlayers()+1))
     gameInstance.addPlayer(givenPlayer)
-    numPlayers = gameInstance.getNumPlayers()
     
 def startGame():
+    clientMsgBlast()
     print("Game would start here")
+    selector.close()
           
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):

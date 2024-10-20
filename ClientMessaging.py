@@ -51,7 +51,7 @@ class Message:
         #print("received response", repr(self.response), "from", self.addr)  
         print(self.response["value: "])        
         
-        self.toggleReadWriteMode("w")
+        #self.toggleReadWriteMode("w")
         self.prevResponse = self.response
         #self.close()
     
@@ -73,10 +73,13 @@ class Message:
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
         '''Was originally referred to as _set_selector_events_mask'''
         if mode == "r":
+            print("Client mode is now set to: r\n")            
             events = selectors.EVENT_READ
         elif mode == "w":
+            print("Client mode is now set to: w\n")
             events = selectors.EVENT_WRITE
         elif mode == "rw":
+            print("Client mode is now set to: r/w\n")
             events = selectors.EVENT_READ | selectors.EVENT_WRITE
         else:
             raise ValueError(f"Invalid events mask mode {repr(mode)}.")

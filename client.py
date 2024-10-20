@@ -56,7 +56,7 @@ def startConnection(Static_HOST, Static_PORT, request):
     errorNumber = sock.connect_ex(serverAddress)
     
     if errorNumber == 0 or errorNumber == 115 :
-        print("Operation succeeded") if errorNumber == 0 else print("Operation now in progress")
+        print("You successfully connected to the server!\n")
     else:
         errorLine = linecache.getline('./resources/TCPErrorNumbers.txt', errorNumber)
         print('Unable to connect. Error code: ' + errorLine)

@@ -84,6 +84,8 @@ class Message:
             content = {"value: ": "the listening port of the server is: 54321"}
         elif action == "-n":
             content = {"value: ": "The DNS name of the server is: ???"}
+        elif action == "blast":
+            content = {"value: ": "This is a test of the blast function."}
 
         contentBytes = self._json_encode(content, "utf-8")
         jsonheader = {
