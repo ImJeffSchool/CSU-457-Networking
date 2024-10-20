@@ -74,9 +74,12 @@ print("Welcome! Let's get you connected. \n"
         + "-n for the DNS name of the server\n")
 
 action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
-action, value = action.split(" ")
-
-request = create_request(action, value)
+if " " in action: 
+    action, value = action.split(" ")
+    request = create_request(action, value)
+else:
+    request = create_request(action)
+    
 startConnection(Static_HOST, Static_PORT, request)
 
 print(repr(request))

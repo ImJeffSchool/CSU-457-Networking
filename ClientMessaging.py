@@ -48,11 +48,8 @@ class Message:
         
         encoding = self.jsonheader["content-encoding"]
         self.response = self._json_decode(data, encoding)
-        print("received response", repr(self.response), "from", self.addr)
-        
-        print("Responce value is: ", self.response['value'])
-        print("WTF")
-        
+        #print("received response", repr(self.response), "from", self.addr)  
+        print(self.response["value: "])        
         
         self.toggleReadWriteMode("w")
         self.prevResponse = self.response
