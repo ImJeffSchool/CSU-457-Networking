@@ -40,6 +40,7 @@ class Message:
         # different. Close is called on the process response because
         #once a number has been doubled, negated, etc: connection
         #will close)
+        print("got into process response")
         
         content_len = self.jsonheader["content-length"]
         if not len(self._recv_buffer) >= content_len:
@@ -50,6 +51,8 @@ class Message:
         encoding = self.jsonheader["content-encoding"]
         self.response = self._json_decode(data, encoding)
         print("received response", repr(self.response), "from", self.addr)
+        
+        
         
         
         self.toggleReadWriteMode("w")
@@ -116,7 +119,7 @@ class Message:
                 self.process_jsonheader()
 
         if self.jsonheader:
-            if self.request is None:
+            if self._recv_buffer is not None:
                 self.processResponse()
     
  
@@ -134,10 +137,12 @@ class Message:
                 # Resource temporarily unavailable (errno EWOULDBLOCK)
                 pass
             else:
+                print("send buffer in else statement is:", self._send_buffer)
                 self._send_buffer = self._send_buffer[dataSent:]
         
         if self.requestQueued:
             if not self._send_buffer:
+                print("send buffer in if statement is:", self._send_buffer)
                 # Set selector to listen for read events, we're done writing.
                 self.toggleReadWriteMode("r")
       
@@ -158,13 +163,6 @@ class Message:
                 f"{self.addr}: {repr(e)}",
             )
             
-    def process_protoheader(self):
-        hdrlen = 2
-        if len(self._recv_buffer) >= hdrlen:
-            self._jsonheader_len = struct.unpack(
-                ">H", self._recv_buffer[:hdrlen]
-            )[0]
-            self._recv_buffer = self._recv_buffer[hdrlen:]
     def process_protoheader(self):
         hdrlen = 2
         if len(self._recv_buffer) >= hdrlen:

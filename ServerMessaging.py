@@ -67,7 +67,9 @@ class Message:
             else:
                 self._send_buffer = self._send_buffer[dataSent:]
                 if dataSent and not self._send_buffer:
-                    self.close()
+                    #if the buffer is empty
+                    #self.close()
+                    self.toggleReadWriteMode("r")
     
         
     def createResponse(self):
@@ -88,6 +90,7 @@ class Message:
             message = messageHeader + jsonheaderBytes + contentBytes
             self.response_created = True
             self._send_buffer += message
+            
         
     def processReadWrite(self, value = None):
         if value & selectors.EVENT_READ:

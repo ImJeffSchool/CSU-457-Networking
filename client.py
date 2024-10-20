@@ -20,13 +20,12 @@ sel = selectors.DefaultSelector()
 
 def handling_Incoming_Data(key, value = None) :
     message = key.data
-    #print("This is recv buffer: ", message._recv_buffer)
-    
     
     if value & selectors.EVENT_READ:
         #print("repr of message obj (client): ", repr(message))
         message.processReadWrite(value)
     if value & selectors.EVENT_WRITE:
+        message.processReadWrite(value)
         print("Do another create request and sent it off")
 
 def create_request(action, value=None):
@@ -93,12 +92,12 @@ try:
                 message.processReadWrite(value)
                 #handling_Incoming_Data(key, value)
             except Exception:
-           #     print(" ")
-                print(
-                    "main: error: exception for",
-                    f"{message.addr}:\n{traceback.format_exc()}",
-                )
-                logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
+                print(" ")
+           #     print(
+            #        "main: error: exception for",
+             #       f"{message.addr}:\n{traceback.format_exc()}",
+             #   )
+            #    logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
                 #message.close()
         # Check for a socket being monitored to continue.
         if not sel.get_map():
