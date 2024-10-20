@@ -19,6 +19,7 @@ class Message:
         self._jsonheader_len = None
         self.jsonheader = None
         self.response = None
+        self.prevResponse = ""
         
     def createRequest(self, *, contentBytes, contentType, contentEncoding):
         jsonheader = {
@@ -32,15 +33,12 @@ class Message:
         message = message_hdr + jsonheader_bytes + contentBytes
         return message
     
-    
-    
     def processResponse(self):
         #just here as a placeholder for now, will have to call 
         #self.close() when game is over. (In the homework this is
         # different. Close is called on the process response because
         #once a number has been doubled, negated, etc: connection
         #will close)
-        print("got into process response")
         
         content_len = self.jsonheader["content-length"]
         if not len(self._recv_buffer) >= content_len:
@@ -52,11 +50,12 @@ class Message:
         self.response = self._json_decode(data, encoding)
         print("received response", repr(self.response), "from", self.addr)
         
-        
+        print("Responce value is: ", self.response['value'])
+        print("WTF")
         
         
         self.toggleReadWriteMode("w")
-        
+        self.prevResponse = self.response
         #self.close()
     
     def queue_request(self):
@@ -86,10 +85,8 @@ class Message:
             raise ValueError(f"Invalid events mask mode {repr(mode)}.")
         self.selector.modify(self.sock, events, data=self)
     
-        
     def jsonEncode(self, obj, encoding):
         return json.dumps(obj, ensure_ascii=False).encode(encoding)
-    
     
     def _json_decode(self, json_bytes, encoding):
         tiow = io.TextIOWrapper(
@@ -122,10 +119,10 @@ class Message:
             if self._recv_buffer is not None:
                 self.processResponse()
     
- 
     def write(self):
+        if self.prevResponse == self.response: 
+            return
         self.queue_request()
-        
         
         if self._send_buffer:
             print("sending", repr(self._send_buffer), "to", self.addr) 
@@ -137,12 +134,10 @@ class Message:
                 # Resource temporarily unavailable (errno EWOULDBLOCK)
                 pass
             else:
-                print("send buffer in else statement is:", self._send_buffer)
                 self._send_buffer = self._send_buffer[dataSent:]
         
         if self.requestQueued:
             if not self._send_buffer:
-                print("send buffer in if statement is:", self._send_buffer)
                 # Set selector to listen for read events, we're done writing.
                 self.toggleReadWriteMode("r")
       

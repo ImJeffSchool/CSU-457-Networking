@@ -62,12 +62,9 @@ def accept_connection(sock):
     gameInstance.addPlayer(givenPlayer)
     numPlayers = gameInstance.getNumPlayers()
     
-    
-    
 def startGame():
     print("Game would start here")
-    
-        
+          
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
@@ -76,7 +73,7 @@ def handling_Incoming_Data (key, value = None):
         message.processReadWrite(value)
 
     if value & selectors.EVENT_WRITE:
-        if gameInstance.getNumPlayers == 2:
+        if gameInstance.getNumPlayers() == 2:
             gameInstance.toggleLiveGame()
         
         if gameInstance.liveGame == False:

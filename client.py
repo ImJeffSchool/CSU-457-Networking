@@ -17,7 +17,6 @@ Static_PORT = 54321
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
 
-
 def handling_Incoming_Data(key, value = None) :
     message = key.data
     
@@ -67,7 +66,6 @@ def startConnection(Static_HOST, Static_PORT, request):
     messages = ClientMessaging.Message(sel, sock, serverAddress, request)
     sel.register(sock, events, data = messages)
     
-
 print("Welcome! Let's get you connected. \n"
         + "Here are some options if you need help\n"
         + "-h for help on how to connect and play\n"

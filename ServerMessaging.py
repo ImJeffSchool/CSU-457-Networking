@@ -71,7 +71,6 @@ class Message:
                     #self.close()
                     self.toggleReadWriteMode("r")
     
-        
     def createResponse(self):
         action = self.request.get("action")
         
@@ -91,7 +90,6 @@ class Message:
             self.response_created = True
             self._send_buffer += message
             
-        
     def processReadWrite(self, value = None):
         if value & selectors.EVENT_READ:
             self.read()
@@ -148,8 +146,7 @@ class Message:
                 f"error: selector.unregister() exception for",
                 f"{self.addr}: {repr(e)}",
             )
-            
-            
+             
     def _json_decode(self, json_bytes, encoding):
         tiow = io.TextIOWrapper(
             io.BytesIO(json_bytes), encoding=encoding, newline=""
@@ -176,6 +173,7 @@ class Message:
             ):
                 if reqhdr not in self.jsonheader:
                     raise ValueError(f'Missing required header "{reqhdr}".')
+                
     def process_protoheader(self):
         hdrlen = 2
         if len(self._recv_buffer) >= hdrlen:
@@ -183,18 +181,20 @@ class Message:
                 ">H", self._recv_buffer[:hdrlen]
             )[0]
             self._recv_buffer = self._recv_buffer[hdrlen:]
-            
-            
+                    
     def toggleReadWriteMode(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
         '''Was originally referred to as _set_selector_events_mask'''
         
         if mode == "r":
             events = selectors.EVENT_READ
+            print("Server is now in read mode")
         elif mode == "w":
             events = selectors.EVENT_WRITE
+            print("Server is now in write mode")
         elif mode == "rw":
             events = selectors.EVENT_READ | selectors.EVENT_WRITE
+            print("Server is now in read/write mode")
         else:
             raise ValueError(f"Invalid events mask mode {repr(mode)}.")
         self.selector.modify(self.sock, events, data=self)
