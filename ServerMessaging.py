@@ -21,9 +21,12 @@ class Message:
         self.request = None
         self.response_created = False
         
-    def getJson(self):
+    def getJsonRequest(self):
         return self.request
-        
+    
+    def getJsonResponse(self):
+        return self.response_created
+    
     def read(self):
         try:
             data = self.sock.recv(4096)
@@ -68,9 +71,23 @@ class Message:
     
         
     def createResponse(self):
-        print("issues here: ")
-    
+        action = self.request.get("action")
         
+        if action == "Ready" :
+            content = {"value: ": "Waiting for more players to connect..."}
+            contentBytes = self._json_encode(content, "utf-8")
+
+            jsonheader = {
+                "byteorder": sys.byteorder,
+                "content-type": "text/json",
+                "content-encoding": "utf-8",
+                "content-length": len(contentBytes),
+            }
+            jsonheaderBytes = self._json_encode(jsonheader, "utf-8")
+            messageHeader = struct.pack(">H", len(jsonheaderBytes))
+            message = messageHeader + jsonheaderBytes + contentBytes
+            self.response_created = True
+            self._send_buffer += message
         
     def processReadWrite(self, value = None):
         if value & selectors.EVENT_READ:

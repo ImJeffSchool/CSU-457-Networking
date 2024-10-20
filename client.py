@@ -24,7 +24,7 @@ def handling_Incoming_Data(key, value = None) :
     
     
     if value & selectors.EVENT_READ:
-        print("repr of message obj (client): ", repr(message))
+        #print("repr of message obj (client): ", repr(message))
         message.processReadWrite(value)
     if value & selectors.EVENT_WRITE:
         print("Do another create request and sent it off")
@@ -90,15 +90,15 @@ try:
         for key, value in events:
             message = key.data
             try:
-                #message.processReadWrite(value)
-                handling_Incoming_Data(key, value)
+                message.processReadWrite(value)
+                #handling_Incoming_Data(key, value)
             except Exception:
-                print(" ")
-       #         print(
-       #             "main: error: exception for",
-      #              f"{message.addr}:\n{traceback.format_exc()}",
-         #       )
-      #          logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
+           #     print(" ")
+                print(
+                    "main: error: exception for",
+                    f"{message.addr}:\n{traceback.format_exc()}",
+                )
+                logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
                 #message.close()
         # Check for a socket being monitored to continue.
         if not sel.get_map():

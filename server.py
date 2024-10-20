@@ -65,22 +65,26 @@ def accept_connection(sock):
     
     
 def startGame():
-    print("TODO: Create the gameplay functionality")
+    print("Game would start here")
+    
         
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
     
     if value & selectors.EVENT_READ:
-        print("repr of message obj: ", repr(message))
         message.processReadWrite(value)
 
     if value & selectors.EVENT_WRITE:
+        if gameInstance.getNumPlayers == message["value"]:
+            gameInstance.toggleLiveGame()
+        
         if gameInstance.liveGame == False:
-            
             message.processReadWrite(value)
-            
-            print("repr of message: ", repr(message))
+        else:
+            startGame()
+            """
+            #print("repr of message: ", repr(message))
             content = "Waiting for more players to connect..."
             contentBytes = message._json_encode(content, "utf-8")
             
@@ -96,12 +100,14 @@ def handling_Incoming_Data (key, value = None):
             
             resp = message_hdr + jsonheaderBytes + contentBytes
 
+            print("WHAT are we sending over: ", resp)
+            
             message._send_buffer = resp
             message.sock.send(message._send_buffer)
             
             
             message.toggleReadWriteMode("r")
-
+            """
     
     
     '''
