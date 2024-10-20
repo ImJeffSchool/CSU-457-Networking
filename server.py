@@ -76,7 +76,7 @@ def handling_Incoming_Data (key, value = None):
         message.processReadWrite(value)
 
     if value & selectors.EVENT_WRITE:
-        if gameInstance.getNumPlayers == message["value"]:
+        if gameInstance.getNumPlayers == 2:
             gameInstance.toggleLiveGame()
         
         if gameInstance.liveGame == False:
