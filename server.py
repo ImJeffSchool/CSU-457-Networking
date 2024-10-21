@@ -89,7 +89,7 @@ def accept_connection(sock):
     gameInstance.addPlayer(givenPlayer)
     
 def startGame():
-    clientMsgBlast()
+    #clientMsgBlast()
     print("Game would start here")
     selector.close()
           
