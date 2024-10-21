@@ -7,6 +7,13 @@ This is a simple Game show example implemented using Python and sockets.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals. Once a player connects, they may adjust game settings and ready up.
 3. **Play the game:** Jeopardy style game where players, in a round-robin fashion, select trivia catagories and a difficulty level. Players take turns entering their moves. One Player writes the question while the other player answers
 
+**Message Protocol:**
+1. Players who get connected to the game will be met with a few options such as 1. Start the game, 2. Ask for help/options, 3. Quit the game.
+2. Messages will be defined as a JSON type scheme.
+3. Various message types such as quitting and joining the game.
+4. Game will have expected response messages such as getting a question right or getting a question wrong.
+5. When playing the game the user will need to choose a row and column to specify a question.
+
 **Technologies used:**
 * Python
 * Tkinter Python GUI Library (built into base Python)
@@ -15,3 +22,45 @@ This is a simple Game show example implemented using Python and sockets.
 **Additional resources:**
 * Tkinter: https://docs.python.org/3/library/tkinter.html
 * [Link to sockets tutorial]
+
+Defined request JSON Schema:
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action"
+  ]
+}
+
+Defined response JSON Schema:
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "value"
+  ]
+}
+
+
+
+
+request JSON:
+select, ready, quit, answerQuestions, 
+
+response JSON
+provideQuestion, validateAnswer, provideAnswer
