@@ -22,4 +22,9 @@ class Player:
 
     # def answerQuestion(self, answer):
         # need to fill out for json
+
+    def __repr__(self):
+        print(f"Player: {self.name}\n"
+              f"Points: {self.points}\n"
+              f"isReady: {self.isReady}\n")
         

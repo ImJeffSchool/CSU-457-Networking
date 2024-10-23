@@ -7,7 +7,7 @@ import traceback
 import Question
 import Player
 import Jeopardy
-import ServerMessaging
+import Message
 import struct
 
 # TCP Server code for the project
@@ -34,7 +34,7 @@ def clientMsgBlast():
     for client in client_List:
         try:
             currSock = client.sock
-            serverBlstMsg = ServerMessaging.Message(selector, currSock, client)
+            serverBlstMsg = Message.Message(selector, currSock, client)
             print("selector, currsock, client are: ", selector, currSock, client)
             content = {
                 "action": "blast",
@@ -76,17 +76,16 @@ def accept_connection(sock):
     connection, ipAddress = sock.accept()
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
     #server_Data = types.SimpleNamespace(addr=ipAddress, input_Data=b"", output_Data=b"")
-    message = ServerMessaging.Message(selector, connection, ipAddress)
-    
-    connection.setblocking(False)
-    client_List.append(message)
-    logging.info(f"Client list: {client_List}")
-    print('Accepted connection from this client: ', ipAddress)
-    logging.info(f"Accepted connection from this client: {ipAddress}")
-    selector.register(connection, server_Events, data=message)
+    message = Message.Message(selector, connection, ipAddress, role='server', gameInstance=gameInstance)
 
-    givenPlayer = Player.Player("Player" + str(gameInstance.getNumPlayers()+1))
-    gameInstance.addPlayer(givenPlayer)
+    connection.setblocking(False)
+    selector.register(connection, server_Events, data=message)
+    logging.info(f"Accepted connection from this client: {ipAddress}")
+
+    client_List.append(message)
+    gameInstance.addPlayer(Player.Player("Player" + str(gameInstance.getNumPlayers()+1)))
+    logging.info(f"Client list: {repr(client_List)}")
+    print('Accepted connection from this client: ', ipAddress)
     
 def startGame():
     clientMsgBlast()
@@ -96,16 +95,16 @@ def startGame():
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
-    
+    print(f"R/W/value Flag set to: {value}")
     if value & selectors.EVENT_READ:
-        message.processReadWrite(value)
+        message.process_read_write(value)
 
     if value & selectors.EVENT_WRITE:
         if gameInstance.getNumPlayers() == 2:
             gameInstance.toggleLiveGame()
         
         if gameInstance.liveGame == False:
-            message.processReadWrite(value)
+            message.process_read_write(value)
         else:
             startGame()
             """

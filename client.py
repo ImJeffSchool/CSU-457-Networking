@@ -7,8 +7,8 @@ import struct
 import logging
 import linecache
 import Player
-
-import ClientMessaging
+import Message
+import time
 
 # TCP Client code for the project
 Static_HOST = '127.0.0.1'
@@ -41,11 +41,12 @@ def create_request(action, value=None):
     if value : 
         common_dict["content"] = {"action": action, "value": value}
         
+    print(common_dict)
     #else: common_dict["content"] = {"action": action, "value": value}
 
     return common_dict
 
-def startConnection(Static_HOST, Static_PORT, request):
+def startConnection(Static_HOST, Static_PORT):
     serverAddress = (Static_HOST, Static_PORT)
     
     print('Starting connection to ', serverAddress)
@@ -63,8 +64,9 @@ def startConnection(Static_HOST, Static_PORT, request):
         logging.info('Unable to connect. Error code: ' + errorLine)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     
-    messages = ClientMessaging.Message(sel, sock, serverAddress, request)
-    sel.register(sock, events, data = messages)
+    message = Message.Message(sel, sock, serverAddress, role = 'client')
+    sel.register(sock, events, data = message)
+    return message
     
 print("Welcome! Let's get you connected. \n"
         + "Here are some options if you need help\n"
@@ -74,15 +76,10 @@ print("Welcome! Let's get you connected. \n"
         + "-n for the DNS name of the server\n")
 
 action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
-if " " in action: 
-    action, value = action.split(" ")
-    request = create_request(action, value)
-else:
-    request = create_request(action)
+request = create_request(action)
     
-startConnection(Static_HOST, Static_PORT, request)
-
-print(repr(request))
+message = startConnection(Static_HOST, Static_PORT)
+message.set_client_request(request)
 
 try:
     while True:
@@ -90,10 +87,11 @@ try:
         for key, value in events:
             message = key.data
             try:
-                message.processReadWrite(value)
+                message.process_read_write(value)
                 #handling_Incoming_Data(key, value)
-            except Exception:
-                print(" ")
+            except Exception as e:
+                time.sleep(1)
+                #print(f"Exception: {e} was caught!\n")
            #     print(
             #        "main: error: exception for",
              #       f"{message.addr}:\n{traceback.format_exc()}",
