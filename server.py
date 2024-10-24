@@ -83,7 +83,11 @@ def accept_connection(sock):
     logging.info(f"Accepted connection from this client: {ipAddress}")
 
     client_List.append(message)
-    gameInstance.addPlayer(Player.Player("Player" + str(gameInstance.getNumPlayers()+1)))
+    currPlayer = Player.Player(("Player", (gameInstance.getNumPlayers()+1)))
+    currPlayer.setAddress(ipAddress)
+    currPlayer.setPort(connection)
+    
+    gameInstance.addPlayer(currPlayer)
     logging.info(f"Client list: {repr(client_List)}")
     print('Accepted connection from this client: ', ipAddress)
     
@@ -95,6 +99,8 @@ def startGame():
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
+    print("In server handle connect", repr(message))
+    
     print(f"R/W/value Flag set to: {value}")
     if value & selectors.EVENT_READ:
         message.process_read_write(value)
@@ -180,6 +186,8 @@ try:
             if key.data is None:
                 accept_connection(key.fileobj)
             else:
+                print("In loop:", repr(key))
+                print("In loop value event mask:", repr(value))
                 handling_Incoming_Data(key, value)
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")

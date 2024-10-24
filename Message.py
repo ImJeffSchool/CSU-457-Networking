@@ -29,6 +29,7 @@ class Message:
         self._send_buffer = b""
         self._jsonheader_len = None
         self.gameInstance = gameInstance  # Relevant for server-side operations
+        self.requestQueued = None
 
     def create_message(self):
         """
@@ -41,7 +42,7 @@ class Message:
         jsonheader = {
             "byteorder": sys.byteorder,
             "content-type": 'text/json',
-            "content-encoding": 'content_encoding',
+            "content-encoding": content_encoding,
             "content-length": len(content_bytes),
         }
         jsonheader_bytes = self._json_encode(jsonheader, content_encoding)
@@ -55,21 +56,33 @@ class Message:
         This method can be expanded to handle server-specific or client-specific logic.
         """
         content_len = self.jsonheader["content-length"]
-        if len(self._recv_buffer) >= content_len:
-            data = self._recv_buffer[:content_len]
-            self._recv_buffer = self._recv_buffer[content_len:]
+        if not len(self._recv_buffer) >= content_len:
+            return
+        data = self._recv_buffer[:content_len]
+        self._recv_buffer = self._recv_buffer[content_len:]
 
-            encoding = self.jsonheader["content-encoding"]
+        encoding = self.jsonheader["content-encoding"]
+        
+        
+        #*******************************
+        # Handle role-specific logic
+        #*******************************
+        
+        if self.role == "server":
             self.request = self._json_decode(data, encoding)
-            print(f"Recieved request {self.request} from {self.addr} in Message.process_message()\n")
-
-            # Handle role-specific logic
-            if self.role == 'server':
-                print(f"Wanting to handle client logic w/message: {repr(self)}\n")
-                self.handle_server_logic()
-            elif self.role == 'client':
-                print(f"Wanting to handle client logic w/message: {repr(self)}\n")
-                self.handle_client_logic()
+            print("received request", repr(self.request), "from", self.addr)
+            
+            print(f"Wanting to handle client logic w/message: {repr(self)}\n")
+            self.handle_server_logic()
+            
+        elif self.role == "client":
+            self.response = self._json_decode(data, encoding)
+            self.prevResponse = self.response
+            print("received response", repr(self.response), "from", self.addr)
+            
+            print(f"Wanting to handle client logic w/message: {repr(self)}\n")
+            self.handle_client_logic()
+            
 
     def handle_server_logic(self):
         """
@@ -79,21 +92,29 @@ class Message:
         print(f"In handle_server_logic w/{self.request} as the client request\n")
 
         if self.request:
-            action = self.response.get("action")
-            value = self.response.get("value")
+            action = self.request["action"]
+            value = self.request["value"]
             # Example: Handle game-specific actions
             if action == "playerAction" and self.gameInstance:
                 self.gameInstance.processPlayerAction(value)
             # Add other server-specific logic as needed
+            #self.toggleReadWriteMode("w")
 
     def handle_client_logic(self):
         """
         Client-side logic for processing responses from the server.
         Example: Handle responses from the server and act accordingly.
         """
+        if self.request:
+            pass
+        
+        
         if self.response:
             # Handle client-side specific actions here
             print(f"Client received: {self.response}\n")
+            #self.toggleReadWriteMode("w")
+            
+        
 
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
@@ -125,7 +146,7 @@ class Message:
         if self.jsonheader:
             self.process_message()
 
-        self.toggleReadWriteMode('w')
+        #self.toggleReadWriteMode('w')
 
     def write(self):
         """
@@ -140,9 +161,12 @@ class Message:
             print("We want to write as the client\n")
             print(f"Current Message OBJ is: {repr(self)}\n")
             self.create_message()
+            if self.request:
+                self.requestQueued = True
 
         #Should only get here if create_message has been called be either
         if self._send_buffer:
+            print(self._recv_buffer)
             print(f"Sending message to {self.addr}\n")
             time.sleep(1)
             try: 
@@ -153,8 +177,15 @@ class Message:
                 pass
             else:
                 self._send_buffer = self._send_buffer[sent:]
+                if self.role == "client" and sent and not self._send_buffer:
+                    #if the buffer is empty
+                    #self.close()
+                    self.toggleReadWriteMode("r")
+        if self.requestQueued:
+            if not self._send_buffer:
+                self.toggleReadWriteMode("r")
 
-        self.toggleReadWriteMode('r')
+        #self.toggleReadWriteMode('w')
 
     def process_protoheader(self):
         """
@@ -215,4 +246,4 @@ class Message:
                 f"JSON Header: {self.jsonheader}\n"
                 f"Response: {self.response}\n"
                 f"Request: {self.request}\n"
-                f"PreResponse: {self.prevResponse}\n")
+                f"PrevResponse: {self.prevResponse}\n")

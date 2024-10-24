@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+
 class Question:
     def __init__(self):
         self.questionBoard1 = np.array((

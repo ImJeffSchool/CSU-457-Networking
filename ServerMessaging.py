@@ -70,6 +70,7 @@ class Message:
                     #if the buffer is empty
                     #self.close()
                     self.toggleReadWriteMode("r")
+        
     
     def createResponse(self):
         action = self.request.get("action")
@@ -114,6 +115,7 @@ class Message:
         self._recv_buffer = self._recv_buffer[content_len:]
         
         encoding = self.jsonheader["content-encoding"]
+        
         self.request = self._json_decode(data, encoding)
         print("received request", repr(self.request), "from", self.addr)
         

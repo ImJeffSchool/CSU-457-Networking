@@ -6,12 +6,26 @@ class Player:
         self.request = None
         self.response = None
         self.isReady = False
+        self.address = None
+        self.port = None
 
     def _addPoints(self, points):
         self.points += points
 
     def _subPoints(self, points): 
         self.points -= points
+        
+    def setAddress(self, addr):
+        self.address = addr
+    
+    def getAddress(self):
+        return self.address
+    
+    def setPort(self, prt):
+        self.port = prt
+    
+    def getPort(self):
+        return self.port
 
     # def askQuestion(self, questionVal):
         # need to fill out for json
