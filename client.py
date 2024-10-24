@@ -25,7 +25,7 @@ def handling_Incoming_Data(key, value = None) :
         message.processReadWrite(value)
     if value & selectors.EVENT_WRITE:
         message.processReadWrite(value)
-        print("Do another create request and sent it off")
+        print("Do another create request and send it off")
 
 def create_request(action, value=None):
     common_dict = {
@@ -41,7 +41,7 @@ def create_request(action, value=None):
     if value : 
         common_dict["content"] = {"action": action, "value": value}
         
-    print(common_dict)
+    #print(common_dict)
     #else: common_dict["content"] = {"action": action, "value": value}
 
     return common_dict

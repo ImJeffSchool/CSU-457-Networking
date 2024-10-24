@@ -99,9 +99,9 @@ def startGame():
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
-    print("In server handle connect", repr(message))
+    # print("In server handle connect", repr(message))
     
-    print(f"R/W/value Flag set to: {value}")
+    # print(f"R/W/value Flag set to: {value}")
     if value & selectors.EVENT_READ:
         message.process_read_write(value)
 
@@ -186,13 +186,16 @@ try:
             if key.data is None:
                 accept_connection(key.fileobj)
             else:
-                print("In loop:", repr(key))
-                print("In loop value event mask:", repr(value))
+                # print("In loop:", repr(key))
+                # print("In loop value event mask:", repr(value))
                 handling_Incoming_Data(key, value)
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
-    client_List.remove(key.data.addr)
+    client2rem = None
+    for client in client_List:
+        if client.getAddress() == key.data.addr: client2rem = client
+    client_List.remove(client2rem)
     logging.info(f"Client list: {client_List}")
     key.fileobj.close()
 except KeyboardInterrupt:   

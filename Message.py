@@ -30,7 +30,15 @@ class Message:
         self._jsonheader_len = None
         self.gameInstance = gameInstance  # Relevant for server-side operations
         self.requestQueued = None
+        self.responseQueued = None
 
+    def create_message_server(self, response):
+        return {
+            "type": "text/json",
+            "encoding": "utf-8",
+            "content": f"response: {response}"
+        }
+        
     def create_message(self):
         """
         Creates a message, encoding the content and attaching headers.
@@ -38,7 +46,8 @@ class Message:
         Finishes by populating the self._send_buffer w/ bytestring message
         """
         content_encoding = 'utf-8'
-        content_bytes = self._json_encode(self.request['content'], content_encoding)
+        if self.role == 'client': content_bytes = self._json_encode(self.request['content'], content_encoding)
+        else: content_bytes = self._json_encode(self.response['content'], content_encoding)
         jsonheader = {
             "byteorder": sys.byteorder,
             "content-type": 'text/json',
@@ -77,13 +86,13 @@ class Message:
             
         elif self.role == "client":
             self.response = self._json_decode(data, encoding)
+            # Might need to move this further down the logic tree
             self.prevResponse = self.response
             print("received response", repr(self.response), "from", self.addr)
             
             print(f"Wanting to handle client logic w/message: {repr(self)}\n")
             self.handle_client_logic()
             
-
     def handle_server_logic(self):
         """
         Server-side logic for processing responses or incoming actions.
@@ -92,13 +101,26 @@ class Message:
         print(f"In handle_server_logic w/{self.request} as the client request\n")
 
         if self.request:
+            reponse = None
             action = self.request["action"]
-            value = self.request["value"]
-            # Example: Handle game-specific actions
-            if action == "playerAction" and self.gameInstance:
-                self.gameInstance.processPlayerAction(value)
-            # Add other server-specific logic as needed
-            #self.toggleReadWriteMode("w")
+            #if self.request["value"]: value = self.request["value"]
+
+            # Specific player wants to ready up
+            if action == 'Ready' and self.gameInstance:
+                for player in self.gameInstance.playerList:
+                    if player.getAddress() == self.addr: player.setReadyState(True)   
+                    print(f"{repr(player)} isReady is now {player.getReadyState()}") 
+                    response = "You're Ready-ed Up!"
+
+            # Need to queue that we want to respond to the player, 
+            self.responseQueued = True
+            self.set_server_response(self.create_message_server(response))
+            self.create_message()
+            self.toggleReadWriteMode("w")
+            self.request = None
+
+        if self.responseQueued:
+            self.responseQueued = False
 
     def handle_client_logic(self):
         """
@@ -114,8 +136,6 @@ class Message:
             print(f"Client received: {self.response}\n")
             #self.toggleReadWriteMode("w")
             
-        
-
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
             self.read()
@@ -146,7 +166,7 @@ class Message:
         if self.jsonheader:
             self.process_message()
 
-        #self.toggleReadWriteMode('w')
+        self.toggleReadWriteMode('w')
 
     def write(self):
         """
@@ -154,19 +174,19 @@ class Message:
         :param message: Message to be sent.
         """
         if self.role == 'server':
-            print("We want to write as the server\n")
-            print(f"Current Message OBJ is: {repr(self)}\n")
+            # print("We want to write as the server\n")
+            # print(f"Current Message OBJ is: {repr(self)}\n")
             self.handle_server_logic()
         else: 
-            print("We want to write as the client\n")
-            print(f"Current Message OBJ is: {repr(self)}\n")
+            # print("We want to write as the client\n")
+            # print(f"Current Message OBJ is: {repr(self)}\n")
             self.create_message()
             if self.request:
                 self.requestQueued = True
 
         #Should only get here if create_message has been called be either
         if self._send_buffer:
-            print(self._recv_buffer)
+            # print(self._recv_buffer)
             print(f"Sending message to {self.addr}\n")
             time.sleep(1)
             try: 
@@ -218,13 +238,13 @@ class Message:
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
         '''Was originally referred to as _set_selector_events_mask'''
         if mode == "r":
-            print("Client mode is now set to: r\n")            
+           # print("Client mode is now set to: r\n")            
             events = selectors.EVENT_READ
         elif mode == "w":
-            print("Client mode is now set to: w\n")
+            # print("Client mode is now set to: w\n")
             events = selectors.EVENT_WRITE
         elif mode == "rw":
-            print("Client mode is now set to: r/w\n")
+            # print("Client mode is now set to: r/w\n")
             events = selectors.EVENT_READ | selectors.EVENT_WRITE
         else:
             raise ValueError(f"Invalid events mask mode {repr(mode)}.")
@@ -232,6 +252,9 @@ class Message:
 
     def set_client_request(self, request):
         self.request = request
+
+    def set_server_response(self, response):
+        self.response = response
 
     def __repr__(self):
         return (f"Messaging Instance:\n"

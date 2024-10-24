@@ -30,15 +30,16 @@ class Player:
     # def askQuestion(self, questionVal):
         # need to fill out for json
 
-    def toggleReady(self):
-        if self.isReady == False: self.isReady = True
-        else: self.isReady = False 
+    def setReadyState(self, state):
+        self.isReady = state
 
+    def getReadyState(self):
+        return self.isReady
     # def answerQuestion(self, answer):
         # need to fill out for json
 
     def __repr__(self):
-        print(f"Player: {self.name}\n"
+        return (f"Player: {self.name}\n"
               f"Points: {self.points}\n"
               f"isReady: {self.isReady}\n")
         
