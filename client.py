@@ -82,15 +82,22 @@ message = startConnection(Static_HOST, Static_PORT)
 message.set_client_request(request)
 
 try:
+    prevEvents = None
     while True:
         events = sel.select(timeout=1)
-        for key, value in events:
-            message = key.data
-            try:
-                message.process_read_write(value)
-                #handling_Incoming_Data(key, value)
-            except Exception as e:
-                time.sleep(1)
+        if events != prevEvents:    
+            for key, value in events:
+                message = key.data
+                try:
+                    # if not message.request:
+                    #     action = input("Please enter another command, or when you are ready, enter ready: ")
+                    #     request = create_request(action)
+                    #     message.set_client_request(request)
+                    message.process_read_write(value)
+                    #handling_Incoming_Data(key, value)
+                except Exception as e:
+                    time.sleep(1)
+            prevEvents = events
                 #print(f"Exception: {e} was caught!\n")
            #     print(
             #        "main: error: exception for",

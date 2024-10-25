@@ -36,7 +36,7 @@ class Message:
         return {
             "type": "text/json",
             "encoding": "utf-8",
-            "content": f"response: {response}"
+            "content": response
         }
         
     def create_message(self):
@@ -81,16 +81,15 @@ class Message:
             self.request = self._json_decode(data, encoding)
             print("received request", repr(self.request), "from", self.addr)
             
-            print(f"Wanting to handle client logic w/message: {repr(self)}\n")
+            #print(f"Wanting to handle server logic w/message: {repr(self)}\n")
             self.handle_server_logic()
             
         elif self.role == "client":
             self.response = self._json_decode(data, encoding)
             # Might need to move this further down the logic tree
             self.prevResponse = self.response
-            print("received response", repr(self.response), "from", self.addr)
-            
-            print(f"Wanting to handle client logic w/message: {repr(self)}\n")
+        
+            #print(f"Wanting to handle client logic w/message: {repr(self)}\n")
             self.handle_client_logic()
             
     def handle_server_logic(self):
@@ -98,19 +97,38 @@ class Message:
         Server-side logic for processing responses or incoming actions.
         Example: Process actions based on game instance.
         """
-        print(f"In handle_server_logic w/{self.request} as the client request\n")
+        # if self.request:
+        #     print(f"In handle_server_logic w/{self.request} as the client request\n")
 
         if self.request:
-            reponse = None
+            response = None
             action = self.request["action"]
-            #if self.request["value"]: value = self.request["value"]
+            #value = self.request.get("value", None)
 
             # Specific player wants to ready up
             if action == 'Ready' and self.gameInstance:
                 for player in self.gameInstance.playerList:
                     if player.getAddress() == self.addr: player.setReadyState(True)   
-                    print(f"{repr(player)} isReady is now {player.getReadyState()}") 
-                    response = "You're Ready-ed Up!"
+                    #print(f"{repr(player)} isReady is now {player.getReadyState()}") 
+                    response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
+                    #"You're Ready-ed Up!"
+            elif action == "-h":
+                response = {"Action": "-h", "Value": "Welcome to Jeopardy! In order to play the game you must first ready up by [TYPING READY INTO THE TERMINAL].Once multiple players have readied up, the game will start. In this game you will select a question from the board, then answer it. Players will take turns responding to a question. Answer a question correctly, and you receive points! Answer a question incorrectly, and you will lose points. When all of the questions on the board have been selected the game will end. Whoever has the most points wins!"}
+                
+            elif action == "-i":
+                response = {"Action": "-i", "Value": "The IP address of the server is 127.0.0.1"}
+            
+            elif action == "-p":
+                response = {"Action": "-p", "Value": "The server's port number is 54321"}
+            
+                
+            elif action == "-n":
+                response = {"Action": "-n", "Value": "The name of the DNS server is: CRAWFORD.ColoState.EDU"}
+            
+            
+                #can modify this text to do multiple rounds and final round
+                # will change [TYPING INTO TERMINAL] 
+                # to "press ready button" later 
 
             # Need to queue that we want to respond to the player, 
             self.responseQueued = True
@@ -132,8 +150,19 @@ class Message:
         
         
         if self.response:
+            self.request = None
+            if self.response["Action"] == "Ready":
+                print(self.response["Value"], "Now waiting for other players...")
+            elif self.response["Action"] == "-h" or self.response["Action"] == "-i" or self.response["Action"] == "-p" or self.response["Action"] == "-n":
+                print(self.response["Value"])
+                
+            elif self.response["Action"] == "Quit":
+                #enter the logic to sock.remove() a player then 
+                # msg blast to all other players who disconnected
+                pass
+            
             # Handle client-side specific actions here
-            print(f"Client received: {self.response}\n")
+            #print(f"Client received: {self.response}\n")
             #self.toggleReadWriteMode("w")
             
     def process_read_write(self, value = None):
@@ -155,7 +184,6 @@ class Message:
             self._recv_buffer += data
         else:
             raise RuntimeError("Peer closed.")
-
         if self._jsonheader_len is None:
             self.process_protoheader()
 
@@ -188,11 +216,9 @@ class Message:
         if self._send_buffer:
             # print(self._recv_buffer)
             print(f"Sending message to {self.addr}\n")
-            time.sleep(1)
             try: 
                 sent = self.sock.send(self._send_buffer)
                 print("Sent!!!!\n")
-                time.sleep(1)
             except BlockingIOError:
                 pass
             else:

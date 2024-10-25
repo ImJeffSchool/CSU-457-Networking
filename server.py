@@ -180,20 +180,23 @@ def handling_Incoming_Data (key, value = None):
 listening_Socket()
 
 try:
+    prevEvents = None
     while True:
         events = selector.select(timeout=None)
-        for key, value in events:
-            if key.data is None:
-                accept_connection(key.fileobj)
-            else:
-                # print("In loop:", repr(key))
-                # print("In loop value event mask:", repr(value))
-                handling_Incoming_Data(key, value)
+        if events != prevEvents:
+            for key, value in events:
+                if key.data is None:
+                    accept_connection(key.fileobj)
+                else:
+                    # print("In loop:", repr(key))
+                    # print("In loop value event mask:", repr(value))
+                    handling_Incoming_Data(key, value)
+            prevEvents = events
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     client2rem = None
-    for client in client_List:
+    for client in gameInstance.playerList:
         if client.getAddress() == key.data.addr: client2rem = client
     client_List.remove(client2rem)
     logging.info(f"Client list: {client_List}")
