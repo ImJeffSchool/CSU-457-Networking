@@ -92,9 +92,10 @@ def accept_connection(sock):
     print('Accepted connection from this client: ', ipAddress)
     
 def startGame():
-    clientMsgBlast()
-    print("Game would start here")
-    selector.close()
+    #clientMsgBlast()
+    while True:
+        print("We are in the infinite game start loop")
+    #selector.close()
           
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
