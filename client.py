@@ -12,7 +12,7 @@ import time
 
 # TCP Client code for the project
 Static_HOST = '127.0.0.1'
-Static_PORT = 54321
+Static_PORT = 54323
 
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()

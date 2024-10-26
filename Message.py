@@ -31,6 +31,7 @@ class Message:
         self.gameInstance = gameInstance  # Relevant for server-side operations
         self.requestQueued = None
         self.responseQueued = None
+        self.responseSent = None
 
     def create_message_server(self, response):
         return {
@@ -103,7 +104,7 @@ class Message:
         if self.request:
             response = None
             action = self.request["action"]
-            #value = self.request.get("value", None)
+            value = self.request.get("value", None)
 
             # Specific player wants to ready up
             if action == 'Ready' and self.gameInstance:
@@ -124,6 +125,9 @@ class Message:
                 
             elif action == "-n":
                 response = {"Action": "-n", "Value": "The name of the DNS server is: CRAWFORD.ColoState.EDU"}
+            
+            elif action == "Blast":
+                response = {"Action": "Blast", "Value": value}
             
             
                 #can modify this text to do multiple rounds and final round
@@ -160,6 +164,8 @@ class Message:
                 #enter the logic to sock.remove() a player then 
                 # msg blast to all other players who disconnected
                 pass
+            elif self.response["Action"] == "Blast":
+                print("Response was: ", self.response["Value"])
             
             # Handle client-side specific actions here
             #print(f"Client received: {self.response}\n")
@@ -277,6 +283,9 @@ class Message:
         self.selector.modify(self.sock, events, data=self)
 
     def set_client_request(self, request):
+        self.request = request
+        
+    def set_server_request(self, request):
         self.request = request
 
     def set_server_response(self, response):

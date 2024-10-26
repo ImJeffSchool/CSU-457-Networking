@@ -22,24 +22,48 @@ logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
 HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
-PORT = 54321                           # The port used by the server
+PORT = 54323                           # The port used by the server
 MAX_NUM_CLIENTS = 4
 # ^ Constants for now, but will be changed later
 
 client_List = []
 
+registryList = []
+
 def clientMsgBlast():
     # send to all clients at once
     print("Into clientMsgBlast\n")
-    for client in client_List:
+    for client in gameInstance.playerList:
         try:
-            currSock = client.sock
-            serverBlstMsg = Message.Message(selector, currSock, client)
-            print("selector, currsock, client are: ", selector, currSock, client)
-            content = {
-                "action": "blast",
-                "value": "this is a blast ttest"
+            ipAddress = client.getAddress()
+            port = client.getPort()
+            
+            serverBlstMsg = Message.Message(selector, port, ipAddress, role='server', gameInstance=gameInstance)
+            server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
+            
+            selector.register(registryList.pop(), server_Events, data=serverBlstMsg)
+
+            #currSock = client.sock
+            #serverBlstMsg = Message.Message(selector, currSock, client)
+            print("Port, IP, client are: ", port, ipAddress, client)
+            
+            """
+            JSONSerializableArray = gameInstance.questionsANDanswers.currentQuestionBoard
+            JSONSerializableArray.toList()
+            
+            gameInstanceJson = {
+                "liveGame" : gameInstance.liveGame,
+                "currentPlayer": client.name,
+                "QuestionBoard": JSONSerializableArray
             }
+            """
+            content = {
+                "action": "Blast",
+                "value": "Test blast message"
+            }
+            
+            #serverBlstMsg.set_server_request(content)
+            
             contentBytes = serverBlstMsg._json_encode(content, "utf-8")
             jsonheader = {
                 "byteorder": sys.byteorder,
@@ -52,9 +76,23 @@ def clientMsgBlast():
             message = messageHeader + jsonheaderBytes + contentBytes
             #serverBlstMsg.response_created = True
             serverBlstMsg._recv_buffer += message
-            print("serverBlstMsg._recv_buffer is: ",serverBlstMsg._recv_buffer)
-            serverBlstMsg.toggleReadWriteMode('r')
-            serverBlstMsg.processReadWrite()
+            #print("serverBlstMsg._recv_buffer is: ",serverBlstMsg._recv_buffer)
+            
+
+            if serverBlstMsg._jsonheader_len is None:
+                serverBlstMsg.process_protoheader()
+
+            if serverBlstMsg._jsonheader_len is not None:
+                if serverBlstMsg.jsonheader is None:
+                    serverBlstMsg.process_jsonheader()
+
+            if serverBlstMsg.jsonheader:
+                serverBlstMsg.process_message()
+
+            #serverBlstMsg.toggleReadWriteMode('w')
+            #serverBlstMsg.process_read_write(2)
+
+            
         except Exception as e:
             print("error is: ", e)
             logging.info("Ran into trouble on the blast message")
@@ -73,6 +111,7 @@ def listening_Socket():
 
 # Method for accepting incoming connections
 def accept_connection(sock):
+    #registryList.append(sock)
     connection, ipAddress = sock.accept()
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
     #server_Data = types.SimpleNamespace(addr=ipAddress, input_Data=b"", output_Data=b"")
@@ -92,28 +131,48 @@ def accept_connection(sock):
     print('Accepted connection from this client: ', ipAddress)
     
 def startGame():
-    #clientMsgBlast()
-    while True:
-        print("We are in the infinite game start loop")
+    clientMsgBlast()
+    
+    """
+    isOver = False
+    
+    while not isOver:
+        for player in gameInstance.playerList:
+            pointsList = []
+            pointsList.append(player.points)
+        mostPoints = max(pointsList)
+        pointsList.clear()
+
+            
     #selector.close()
-          
+    """      
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
+    sock = key.fileobj
     # print("In server handle connect", repr(message))
     
+    
+    if message.responseSent == True:
+        return
     # print(f"R/W/value Flag set to: {value}")
     if value & selectors.EVENT_READ:
         message.process_read_write(value)
+        message.responseSent = True
+        registryList.append(sock)
+        selector.unregister(sock)
 
     if value & selectors.EVENT_WRITE:
-        if gameInstance.getNumPlayers() == 2:
-            gameInstance.toggleLiveGame()
         
-        if gameInstance.liveGame == False:
-            message.process_read_write(value)
-        else:
+        message.process_read_write(value)
+        
+        gameInstance.checkIfGameStart()
+        if gameInstance.liveGame == True:
             startGame()
+            #this logic is also the reason
+            #p2 doesn't get a readied up message
+            
+        #else:
             """
             #print("repr of message: ", repr(message))
             content = "Waiting for more players to connect..."
@@ -193,6 +252,8 @@ try:
                     # print("In loop value event mask:", repr(value))
                     handling_Incoming_Data(key, value)
             prevEvents = events
+        else:
+            prevEvents = None
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")

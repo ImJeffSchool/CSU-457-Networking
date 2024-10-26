@@ -49,3 +49,6 @@ class Question:
     def printQuestionBoard(self):
         print(self.currentQuestionBoard)
         
+    def printAnswerBoard(self):
+        print(self.currentAnswerList)
+        
