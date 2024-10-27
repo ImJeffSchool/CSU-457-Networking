@@ -56,9 +56,6 @@ Defined response JSON Schema:
   ]
 }
 
-
-
-
 request JSON:
 select, ready, quit, answerQuestions, 
 
