@@ -9,10 +9,11 @@ import linecache
 import Player
 import Message
 import time
+import getopt
 
 # TCP Client code for the project
-Static_HOST = '127.0.0.1'
-Static_PORT = 54322
+#Static_HOST = '127.0.0.1'
+#Static_PORT = 54322
 
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
@@ -67,18 +68,38 @@ def startConnection(Static_HOST, Static_PORT):
     message = Message.Message(sel, sock, serverAddress, role = 'client')
     sel.register(sock, events, data = message)
     return message
-    
-print("Welcome! Let's get you connected. \n"
-        + "Here are some options if you need help\n"
-        + "-h for help on how to connect and play\n"
-        + "-i for the ip address of the server\n"
-        + "-p for the listening port of the server\n"
-        + "-n for the DNS name of the server\n")
+
+argv = sys.argv[1:]
+
+try: 
+    opts, args = getopt.getopt(argv, "i:p:hn") 
+
+except (getopt.GetoptError, NameError): 
+    print("please use -h if unfamiliar with the protocol")
+    exit()
+
+for opt, arg in opts: 
+    if opt in ['-i']: 
+        host = arg 
+    elif opt in ['-p']: 
+        port = int(arg) 
+    elif opt in ['-h']:
+        print("python client.py -i <IP ADDRESS> -p <PORT NUMBER>")
+        exit()
+    elif opt in ['-n']:
+        print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
+        exit()
+
+
 
 action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
 request = create_request(action)
-    
-message = startConnection(Static_HOST, Static_PORT)
+
+#host, port = sys.argv[2], sys.argv[4]
+#dashI, dashP = sys.argv[1], sys.argv[3]
+
+
+message = startConnection(host, port)
 message.set_client_request(request)
 
 try:
