@@ -75,7 +75,7 @@ try:
     opts, args = getopt.getopt(argv, "i:p:hn") 
 
 except (getopt.GetoptError, NameError): 
-    print("please use -h if unfamiliar with the protocol")
+    print("please use python client.py -h if unfamiliar with the protocol")
     exit()
 
 for opt, arg in opts: 
