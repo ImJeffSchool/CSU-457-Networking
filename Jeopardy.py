@@ -16,3 +16,12 @@ class Jeopardy:
         
     def getNumPlayers(self):
         return len(self.playerList)
+    
+    def checkIfGameStart(self):
+        listOfReadyPlayers = []
+        for player in self.playerList:
+            listOfReadyPlayers.append(player.isReady)
+            
+        if all(listOfReadyPlayers) == True and len(listOfReadyPlayers) > 1:
+            self.toggleLiveGame()
+        
