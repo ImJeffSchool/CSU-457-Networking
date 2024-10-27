@@ -148,6 +148,7 @@ def startGame():
             
     #selector.close()
     """      
+    
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
