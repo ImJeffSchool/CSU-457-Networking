@@ -247,8 +247,9 @@ argv = sys.argv[1:]
 try: 
     opts, args = getopt.getopt(argv, "i:p:h:n") 
 
-except: 
-    print("Error") 
+except (getopt.GetoptError, NameError): 
+    print("please use python server.py -h if unfamiliar with the protocol")
+    exit()
 
 for opt, arg in opts: 
     if opt in ['-i']: 
@@ -257,8 +258,10 @@ for opt, arg in opts:
         port = int(arg)
     elif opt in ['-h']:
         print("python server.py -i <IP ADDRESS> -p <PORT NUMBER>")
+        exit()
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
+        exit()
 
 
 
