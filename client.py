@@ -12,7 +12,7 @@ import time
 
 # TCP Client code for the project
 Static_HOST = '127.0.0.1'
-Static_PORT = 54323
+Static_PORT = 54322
 
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
@@ -93,6 +93,7 @@ try:
                     #     action = input("Please enter another command, or when you are ready, enter ready: ")
                     #     request = create_request(action)
                     #     message.set_client_request(request)
+                    
                     message.process_read_write(value)
                     #handling_Incoming_Data(key, value)
                 except Exception as e:

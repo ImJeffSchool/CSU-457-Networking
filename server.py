@@ -22,7 +22,7 @@ logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
 HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
-PORT = 54323                           # The port used by the server
+PORT = 54322                          # The port used by the server
 MAX_NUM_CLIENTS = 4
 # ^ Constants for now, but will be changed later
 
@@ -41,7 +41,7 @@ def clientMsgBlast():
             serverBlstMsg = Message.Message(selector, port, ipAddress, role='server', gameInstance=gameInstance)
             server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
             
-            selector.register(registryList.pop(), server_Events, data=serverBlstMsg)
+            selector.register(registryList.pop(0), server_Events, data=serverBlstMsg)
 
             #currSock = client.sock
             #serverBlstMsg = Message.Message(selector, currSock, client)
@@ -63,6 +63,7 @@ def clientMsgBlast():
             }
             
             #serverBlstMsg.set_server_request(content)
+            
             
             contentBytes = serverBlstMsg._json_encode(content, "utf-8")
             jsonheader = {
@@ -89,8 +90,8 @@ def clientMsgBlast():
             if serverBlstMsg.jsonheader:
                 serverBlstMsg.process_message()
 
-            #serverBlstMsg.toggleReadWriteMode('w')
-            #serverBlstMsg.process_read_write(2)
+            serverBlstMsg.toggleReadWriteMode('w')
+            serverBlstMsg.process_read_write(2)
 
             
         except Exception as e:
@@ -131,7 +132,8 @@ def accept_connection(sock):
     print('Accepted connection from this client: ', ipAddress)
     
 def startGame():
-    clientMsgBlast()
+    if len(registryList) > 0:
+        clientMsgBlast()
     
     """
     isOver = False
