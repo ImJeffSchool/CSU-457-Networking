@@ -10,6 +10,7 @@ import Jeopardy
 import Message
 import struct
 import getopt
+import time
 
 # TCP Server code for the project
 # Basic Server Setup:
@@ -134,6 +135,7 @@ def accept_connection(sock):
     
 def startGame():
     if len(registryList) > 0:
+        time.sleep(10)
         clientMsgBlast()
     
     """

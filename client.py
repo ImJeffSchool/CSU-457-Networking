@@ -47,11 +47,11 @@ def create_request(action, value=None):
 
     return common_dict
 
-def startConnection(Static_HOST, Static_PORT):
-    serverAddress = (Static_HOST, Static_PORT)
+def startConnection(host, port):
+    serverAddress = (host, port)
     
     print('Starting connection to ', serverAddress)
-    logging.info('Starting connection to '.join((Static_HOST, str(Static_PORT))))
+    logging.info('Starting connection to '.join((host, str(port))))
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
@@ -78,6 +78,9 @@ except (getopt.GetoptError, NameError):
     print("please use python client.py -h if unfamiliar with the protocol")
     exit()
 
+host = None
+port = None
+
 for opt, arg in opts: 
     if opt in ['-i']: 
         host = arg 
@@ -103,23 +106,20 @@ message = startConnection(host, port)
 message.set_client_request(request)
 
 try:
-    prevEvents = None
     while True:
-        events = sel.select(timeout=1)
-        if events != prevEvents:    
-            for key, value in events:
-                message = key.data
-                try:
-                    # if not message.request:
-                    #     action = input("Please enter another command, or when you are ready, enter ready: ")
-                    #     request = create_request(action)
-                    #     message.set_client_request(request)
-                    
-                    message.process_read_write(value)
-                    #handling_Incoming_Data(key, value)
-                except Exception as e:
-                    time.sleep(1)
-            prevEvents = events
+        events = sel.select(timeout=1)  
+        for key, value in events:
+            message = key.data
+            try:
+                # if not message.request:
+                #     action = input("Please enter another command, or when you are ready, enter ready: ")
+                #     request = create_request(action)
+                #     message.set_client_request(request)
+                
+                message.process_read_write(value)
+                #handling_Incoming_Data(key, value)
+            except Exception as e:
+                time.sleep(1)
                 #print(f"Exception: {e} was caught!\n")
            #     print(
             #        "main: error: exception for",
