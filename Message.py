@@ -155,21 +155,23 @@ class Message:
         
         if self.response:
             self.request = None
-            if self.response["Action"] == "Ready":
+
+            if self.response["Value"] == "You are Ready-ed Up!":
                 print(self.response["Value"], "Now waiting for other players...")
-            elif self.response["Action"] == "-h" or self.response["Action"] == "-i" or self.response["Action"] == "-p" or self.response["Action"] == "-n":
-                print(self.response["Value"])
-                
+                self.toggleReadWriteMode("r")
+            
             elif self.response["Action"] == "Quit":
                 #enter the logic to sock.remove() a player then 
                 # msg blast to all other players who disconnected
                 pass
             elif self.response["Action"] == "Blast":
+                self.toggleReadWriteMode("r")
                 print("Response was: ", self.response["Value"])
             
+            else:
+                self.toggleReadWriteMode("w")
             # Handle client-side specific actions here
             #print(f"Client received: {self.response}\n")
-            #self.toggleReadWriteMode("w")
             
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
@@ -200,7 +202,7 @@ class Message:
         if self.jsonheader:
             self.process_message()
 
-        self.toggleReadWriteMode('w')
+        #self.toggleReadWriteMode('w')
 
     def write(self):
         """

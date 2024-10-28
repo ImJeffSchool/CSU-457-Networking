@@ -9,10 +9,11 @@ import linecache
 import Player
 import Message
 import time
+import getopt
 
 # TCP Client code for the project
-Static_HOST = '127.0.0.1'
-Static_PORT = 54322
+#Static_HOST = '127.0.0.1'
+#Static_PORT = 54322
 
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
@@ -46,11 +47,11 @@ def create_request(action, value=None):
 
     return common_dict
 
-def startConnection(Static_HOST, Static_PORT):
-    serverAddress = (Static_HOST, Static_PORT)
+def startConnection(host, port):
+    serverAddress = (host, port)
     
     print('Starting connection to ', serverAddress)
-    logging.info('Starting connection to '.join((Static_HOST, str(Static_PORT))))
+    logging.info('Starting connection to '.join((host, str(port))))
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
@@ -67,38 +68,58 @@ def startConnection(Static_HOST, Static_PORT):
     message = Message.Message(sel, sock, serverAddress, role = 'client')
     sel.register(sock, events, data = message)
     return message
-    
-print("Welcome! Let's get you connected. \n"
-        + "Here are some options if you need help\n"
-        + "-h for help on how to connect and play\n"
-        + "-i for the ip address of the server\n"
-        + "-p for the listening port of the server\n"
-        + "-n for the DNS name of the server\n")
+
+argv = sys.argv[1:]
+
+try: 
+    opts, args = getopt.getopt(argv, "i:p:hn") 
+
+except (getopt.GetoptError, NameError): 
+    print("please use python client.py -h if unfamiliar with the protocol")
+    exit()
+
+host = None
+port = None
+
+for opt, arg in opts: 
+    if opt in ['-i']: 
+        host = arg 
+    elif opt in ['-p']: 
+        port = int(arg) 
+    elif opt in ['-h']:
+        print("python client.py -i <IP ADDRESS> -p <PORT NUMBER>")
+        exit()
+    elif opt in ['-n']:
+        print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
+        exit()
+
+
 
 action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
 request = create_request(action)
-    
-message = startConnection(Static_HOST, Static_PORT)
+
+#host, port = sys.argv[2], sys.argv[4]
+#dashI, dashP = sys.argv[1], sys.argv[3]
+
+
+message = startConnection(host, port)
 message.set_client_request(request)
 
 try:
-    prevEvents = None
     while True:
-        events = sel.select(timeout=1)
-        if events != prevEvents:    
-            for key, value in events:
-                message = key.data
-                try:
-                    # if not message.request:
-                    #     action = input("Please enter another command, or when you are ready, enter ready: ")
-                    #     request = create_request(action)
-                    #     message.set_client_request(request)
-                    
-                    message.process_read_write(value)
-                    #handling_Incoming_Data(key, value)
-                except Exception as e:
-                    time.sleep(1)
-            prevEvents = events
+        events = sel.select(timeout=1)  
+        for key, value in events:
+            message = key.data
+            try:
+                # if not message.request:
+                #     action = input("Please enter another command, or when you are ready, enter ready: ")
+                #     request = create_request(action)
+                #     message.set_client_request(request)
+                
+                message.process_read_write(value)
+                #handling_Incoming_Data(key, value)
+            except Exception as e:
+                time.sleep(1)
                 #print(f"Exception: {e} was caught!\n")
            #     print(
             #        "main: error: exception for",

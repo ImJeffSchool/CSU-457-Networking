@@ -9,6 +9,8 @@ import Player
 import Jeopardy
 import Message
 import struct
+import getopt
+import time
 
 # TCP Server code for the project
 # Basic Server Setup:
@@ -21,8 +23,8 @@ gameInstance = Jeopardy.Jeopardy()
 logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
-HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
-PORT = 54322                          # The port used by the server
+#HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
+#PORT = 54323                          # The port used by the server
 MAX_NUM_CLIENTS = 4
 # ^ Constants for now, but will be changed later
 
@@ -102,13 +104,13 @@ def clientMsgBlast():
 def listening_Socket():
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
-    listen_Socket.bind((HOST, PORT))
+    listen_Socket.bind((host, port))
     listen_Socket.listen()
     listen_Socket.setblocking(False)
     selector.register(listen_Socket, selectors.EVENT_READ, data=None)
     
-    print(' Server is listening on: ', (HOST, PORT))
-    logging.info(f" Server is listening on: {HOST}:{PORT}")
+    print(' Server is listening on: ', (host, port))
+    logging.info(f" Server is listening on: {host}:{port}")
 
 # Method for accepting incoming connections
 def accept_connection(sock):
@@ -133,6 +135,7 @@ def accept_connection(sock):
     
 def startGame():
     if len(registryList) > 0:
+        time.sleep(10)
         clientMsgBlast()
     
     """
@@ -240,6 +243,30 @@ def handling_Incoming_Data (key, value = None):
             data.output_Data = data.output_Data[sent_Data:]
     '''
 # Main method for the server
+
+
+argv = sys.argv[1:]
+try: 
+    opts, args = getopt.getopt(argv, "i:p:h:n") 
+
+except (getopt.GetoptError, NameError): 
+    print("please use python server.py -h if unfamiliar with the protocol")
+    exit()
+
+for opt, arg in opts: 
+    if opt in ['-i']: 
+        host = arg
+    elif opt in ['-p']: 
+        port = int(arg)
+    elif opt in ['-h']:
+        print("python server.py -i <IP ADDRESS> -p <PORT NUMBER>")
+        exit()
+    elif opt in ['-n']:
+        print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
+        exit()
+
+
+
 listening_Socket()
 
 try:
