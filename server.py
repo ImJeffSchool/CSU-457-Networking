@@ -247,7 +247,7 @@ def handling_Incoming_Data (key, value = None):
 
 argv = sys.argv[1:]
 try: 
-    opts, args = getopt.getopt(argv, "i:p:h:n") 
+    opts, args = getopt.getopt(argv, "i:p:hn") 
 
 except (getopt.GetoptError, NameError): 
     print("please use python server.py -h if unfamiliar with the protocol")
@@ -259,7 +259,7 @@ for opt, arg in opts:
     elif opt in ['-p']: 
         port = int(arg)
     elif opt in ['-h']:
-        print("python server.py -i <IP ADDRESS> -p <PORT NUMBER>")
+        print("Use python server.py -i <IP ADDRESS> -p <PORT NUMBER> to run the program")
         exit()
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
