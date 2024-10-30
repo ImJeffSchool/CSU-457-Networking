@@ -5,6 +5,7 @@ import struct
 import io
 import logging
 import time
+import Jeopardy
 
 logging.basicConfig(filename='Message.log', level=logging.INFO)
 
@@ -66,32 +67,33 @@ class Message:
         This method can be expanded to handle server-specific or client-specific logic.
         """
         content_len = self.jsonheader["content-length"]
-        if not len(self._recv_buffer) >= content_len:
-            return
-        data = self._recv_buffer[:content_len]
-        self._recv_buffer = self._recv_buffer[content_len:]
+        if len(self._recv_buffer) >= content_len:
+            data = self._recv_buffer[:content_len]
+            self._recv_buffer = self._recv_buffer[content_len:]
 
-        encoding = self.jsonheader["content-encoding"]
-        
-        
-        #*******************************
-        # Handle role-specific logic
-        #*******************************
-        
-        if self.role == "server":
-            self.request = self._json_decode(data, encoding)
-            print("received request", repr(self.request), "from", self.addr)
+            encoding = self.jsonheader["content-encoding"]
             
-            #print(f"Wanting to handle server logic w/message: {repr(self)}\n")
-            self.handle_server_logic()
             
-        elif self.role == "client":
-            self.response = self._json_decode(data, encoding)
-            # Might need to move this further down the logic tree
-            self.prevResponse = self.response
-        
-            #print(f"Wanting to handle client logic w/message: {repr(self)}\n")
-            self.handle_client_logic()
+            #*******************************
+            # Handle role-specific logic
+            #*******************************
+            
+            if self.role == "server":
+                self.request = self._json_decode(data, encoding)
+                print("received request", repr(self.request), "from", self.addr)
+                
+                #print(f"Wanting to handle server logic w/message: {repr(self)}\n")
+                self.handle_server_logic()
+                
+            elif self.role == "client":
+                self.response = self._json_decode(data, encoding)
+                # Might need to move this further down the logic tree
+                self.prevResponse = self.response
+            
+                #print(f"Wanting to handle client logic w/message: {repr(self)}\n")
+                self.handle_client_logic()
+            return True
+        return False
             
     def handle_server_logic(self):
         """
@@ -166,7 +168,15 @@ class Message:
                 pass
             elif self.response["Action"] == "Blast":
                 self.toggleReadWriteMode("r")
+                print(self.response["Value"])
+            
+            elif self.response["Action"] == "Update":
+                gameInstance = Jeopardy.Jeopardy()
+                print("TODO")
+                self.toggleReadWriteMode("r")
                 print("Response was: ", self.response["Value"])
+                
+                #gameInstance.liveGame = self.response["Value"]
             
             else:
                 self.toggleReadWriteMode("w")
@@ -187,21 +197,26 @@ class Message:
             data = self.sock.recv(4096)
         except BlockingIOError:
             return
-
         if data:
             self._recv_buffer += data
         else:
             raise RuntimeError("Peer closed.")
-        if self._jsonheader_len is None:
-            self.process_protoheader()
+        
+        while True:
+            if self._jsonheader_len is None:
+                if not self.process_protoheader():
+                    break
 
-        if self._jsonheader_len is not None:
-            if self.jsonheader is None:
-                self.process_jsonheader()
-
-        if self.jsonheader:
-            self.process_message()
-
+            if self._jsonheader_len is not None:
+                if self.jsonheader is None:
+                    if not self.process_jsonheader():
+                        break
+            if self.jsonheader:
+                if not self.process_message():
+                    break
+            
+            self._jsonheader_len = None
+            self.jsonheader = None
         #self.toggleReadWriteMode('w')
 
     def write(self):
@@ -249,6 +264,8 @@ class Message:
         if len(self._recv_buffer) >= hdrlen:
             self._jsonheader_len = struct.unpack(">H", self._recv_buffer[:hdrlen])[0]
             self._recv_buffer = self._recv_buffer[hdrlen:]
+            return True
+        return False
 
     def process_jsonheader(self):
         """
@@ -258,6 +275,8 @@ class Message:
         if len(self._recv_buffer) >= hdrlen:
             self.jsonheader = self._json_decode(self._recv_buffer[:hdrlen], "utf-8")
             self._recv_buffer = self._recv_buffer[hdrlen:]
+            return True
+        return False
 
     def _json_encode(self, obj, encoding):
         return json.dumps(obj, ensure_ascii=False).encode(encoding)
