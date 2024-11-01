@@ -32,6 +32,7 @@ class Message:
         self.requestQueued = None
         self.responseQueued = None
         self.responseSent = None
+        self.outboundMessage = b"" # Message to be used/sent to players who disconnect
 
     def create_message_server(self, response):
         return {
@@ -80,16 +81,13 @@ class Message:
         
         if self.role == "server":
             self.request = self._json_decode(data, encoding)
-            print("received request", repr(self.request), "from", self.addr)
-            
+            print("received request", repr(self.request), "from", self.addr) 
             #print(f"Wanting to handle server logic w/message: {repr(self)}\n")
-            self.handle_server_logic()
-            
+            self.handle_server_logic()   
         elif self.role == "client":
             self.response = self._json_decode(data, encoding)
             # Might need to move this further down the logic tree
             self.prevResponse = self.response
-        
             #print(f"Wanting to handle client logic w/message: {repr(self)}\n")
             self.handle_client_logic()
             
@@ -115,17 +113,12 @@ class Message:
                     #"You're Ready-ed Up!"
             elif action == "-h":
                 response = {"Action": "-h", "Value": "Welcome to Jeopardy! In order to play the game you must first ready up by [TYPING READY INTO THE TERMINAL].Once multiple players have readied up, the game will start. In this game you will select a question from the board, then answer it. Players will take turns responding to a question. Answer a question correctly, and you receive points! Answer a question incorrectly, and you will lose points. When all of the questions on the board have been selected the game will end. Whoever has the most points wins!"}
-                
             elif action == "-i":
                 response = {"Action": "-i", "Value": "The IP address of the server is 127.0.0.1"}
-            
             elif action == "-p":
                 response = {"Action": "-p", "Value": "The server's port number is 54321"}
-            
-                
             elif action == "-n":
                 response = {"Action": "-n", "Value": "The name of the DNS server is: CRAWFORD.ColoState.EDU"}
-            
             elif action == "Blast":
                 response = {"Action": "Blast", "Value": value}
             
@@ -159,7 +152,6 @@ class Message:
             if self.response["Value"] == "You are Ready-ed Up!":
                 print(self.response["Value"], "Now waiting for other players...")
                 self.toggleReadWriteMode("r")
-            
             elif self.response["Action"] == "Quit":
                 #enter the logic to sock.remove() a player then 
                 # msg blast to all other players who disconnected
@@ -167,7 +159,6 @@ class Message:
             elif self.response["Action"] == "Blast":
                 self.toggleReadWriteMode("r")
                 print("Response was: ", self.response["Value"])
-            
             else:
                 self.toggleReadWriteMode("w")
             # Handle client-side specific actions here
@@ -192,9 +183,10 @@ class Message:
             self._recv_buffer += data
         else:
             raise RuntimeError("Peer closed.")
+        
         if self._jsonheader_len is None:
             self.process_protoheader()
-
+            
         if self._jsonheader_len is not None:
             if self.jsonheader is None:
                 self.process_jsonheader()

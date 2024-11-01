@@ -23,29 +23,28 @@ def handling_Incoming_Data(key, value = None) :
     
     if value & selectors.EVENT_READ:
         #print("repr of message obj (client): ", repr(message))
-        message.processReadWrite(value)
+        try:
+            incoming_data = key.fileobj.recv(1024)
+            if incoming_data:
+                print(f"Received message: {incoming_data.decode('utf-8')}")
+                message.processReadWrite(value)
+            else:
+                print("closing connection to", message.addr)
+                logging.info('closing connection to'.join(message.addr))
+                sel.unregister(key.fileobj)
+                key.fileobj.close()
+        except Exception as e:
+            print(f"Error reading from {message.addr}: {e}")
+            logging.info(f"Error reading from {message.addr}: {e}")
+            sel.unregister(key.fileobj)
+            key.fileobj.close()
     if value & selectors.EVENT_WRITE:
-        message.processReadWrite(value)
-        print("Do another create request and send it off")
+        if message.outboundMessage:
+            sent = key.fileobj.send(message.outboundMessage)
+            message.outboundMessage = message.outboundMessage[sent:]
 
 def create_request(action, value=None):
-    common_dict = {
-        "type": "text/json",
-        "encoding": "utf-8"
-    }
-
-    if action == "Ready": common_dict["content"] = {"action": action}
-    elif action == "-i": common_dict["content"] = {"action": action}
-    elif action == "-p": common_dict["content"] = {"action": action}
-    elif action == "-n": common_dict["content"] = {"action": action}
-    elif action == "-h": common_dict["content"] = {"action": action}
-    if value : 
-        common_dict["content"] = {"action": action, "value": value}
-        
-    #print(common_dict)
-    #else: common_dict["content"] = {"action": action, "value": value}
-
-    return common_dict
+    return action.encode('utf-8')
 
 def startConnection(host, port):
     serverAddress = (host, port)
@@ -107,31 +106,10 @@ message.set_client_request(request)
 
 try:
     while True:
-        events = sel.select(timeout=1)  
-        for key, value in events:
-            message = key.data
-            try:
-                # if not message.request:
-                #     action = input("Please enter another command, or when you are ready, enter ready: ")
-                #     request = create_request(action)
-                #     message.set_client_request(request)
-                
-                message.process_read_write(value)
-                #handling_Incoming_Data(key, value)
-            except Exception as e:
-                time.sleep(1)
-                #print(f"Exception: {e} was caught!\n")
-           #     print(
-            #        "main: error: exception for",
-             #       f"{message.addr}:\n{traceback.format_exc()}",
-             #   )
-            #    logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
-                #message.close()
-        # Check for a socket being monitored to continue.
-        if not sel.get_map():
-            break
+       events = sel.select(timeout=1)
+       for key, value in events:
+              handling_Incoming_Data(key, value)
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
-    logging.info('caught keyboard interrupt, exiting')
 finally:
-    sel.close
+    sel.close()

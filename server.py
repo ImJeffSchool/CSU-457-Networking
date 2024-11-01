@@ -13,24 +13,18 @@ import getopt
 import time
 
 # TCP Server code for the project
-# Basic Server Setup:
-# 1. Create a server-side application that listens for incoming client connections on a specified port.
-# 2. Implement a mechanism to handle multiple client connections simultaneously.
-# 3. Log connection and disconnection events.
-
-gameInstance = Jeopardy.Jeopardy()
 
 logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
-#HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
-#PORT = 54323                          # The port used by the server
+#HOST = '127.0.0.1'                  
+#PORT = 54323                      
 MAX_NUM_CLIENTS = 4
 # ^ Constants for now, but will be changed later
 
 client_List = []
-
 registryList = []
+gameInstance = Jeopardy.Jeopardy()
 
 def clientMsgBlast():
     # send to all clients at once
@@ -39,7 +33,6 @@ def clientMsgBlast():
         try:
             ipAddress = client.getAddress()
             port = client.getPort()
-            
             serverBlstMsg = Message.Message(selector, port, ipAddress, role='server', gameInstance=gameInstance)
             server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
             
@@ -63,17 +56,17 @@ def clientMsgBlast():
                 "action": "Blast",
                 "value": "Test blast message"
             }
-            
             #serverBlstMsg.set_server_request(content)
             
-            
             contentBytes = serverBlstMsg._json_encode(content, "utf-8")
+            
             jsonheader = {
                 "byteorder": sys.byteorder,
                 "content-type": "text/json",
                 "content-encoding": "utf-8",
                 "content-length": len(contentBytes),
             }
+            
             jsonheaderBytes = serverBlstMsg._json_encode(jsonheader, "utf-8")
             messageHeader = struct.pack(">H", len(jsonheaderBytes))
             message = messageHeader + jsonheaderBytes + contentBytes
@@ -81,25 +74,28 @@ def clientMsgBlast():
             serverBlstMsg._recv_buffer += message
             #print("serverBlstMsg._recv_buffer is: ",serverBlstMsg._recv_buffer)
             
-
             if serverBlstMsg._jsonheader_len is None:
                 serverBlstMsg.process_protoheader()
-
             if serverBlstMsg._jsonheader_len is not None:
                 if serverBlstMsg.jsonheader is None:
                     serverBlstMsg.process_jsonheader()
-
             if serverBlstMsg.jsonheader:
                 serverBlstMsg.process_message()
 
             serverBlstMsg.toggleReadWriteMode('w')
             serverBlstMsg.process_read_write(2)
-
-            
         except Exception as e:
             print("error is: ", e)
             logging.info("Ran into trouble on the blast message")
-
+            
+def notify_remaining_users(addr):
+    for key in selector.get_map().values():
+        if key.data is not None and key.data.addr != addr:
+            remaining_socket = key.fileobj
+            message = f"Player {addr} has disconnected from the server"
+            key.data.outboundMessage += message.encode('utf-8')
+            print(f"Notified {key.data.addr} of the disconnection")
+            
 # Method for listening to incoming connections
 def listening_Socket():
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,7 +133,6 @@ def startGame():
     if len(registryList) > 0:
         time.sleep(10)
         clientMsgBlast()
-    
     """
     isOver = False
     
@@ -146,9 +141,7 @@ def startGame():
             pointsList = []
             pointsList.append(player.points)
         mostPoints = max(pointsList)
-        pointsList.clear()
-
-            
+        pointsList.clear()  
     #selector.close()
     """      
     
@@ -156,22 +149,39 @@ def startGame():
 def handling_Incoming_Data (key, value = None):
     message = key.data
     sock = key.fileobj
-    # print("In server handle connect", repr(message))
-    
-    
-    if message.responseSent == True:
-        return
-    # print(f"R/W/value Flag set to: {value}")
+
     if value & selectors.EVENT_READ:
-        message.process_read_write(value)
-        message.responseSent = True
-        registryList.append(sock)
-        selector.unregister(sock)
+        try:
+            incoming_data = sock.recv(1024)
+            if incoming_data:
+                message.process_read_write(value)
+            else:
+                # For when the client disconnects
+                print(f"Closing connection to: ', {message.addr}")
+                logging.info(f"Closing connection to: {message.addr}")
+                try:
+                    selector.unregister(sock)
+                except KeyError:
+                    print(f"KeyError: {message.addr}")
+                    logging.info(f"KeyError: {message.addr}")
+                notify_remaining_users(message.addr)
+                return
+        except Exception as e:
+            print(f"Closing connection to: {message.addr}")
+            logging.info(f"Closing connection to: {message.addr}")
+            try:
+                selector.unregister(sock)
+            except KeyError:
+                print(f"KeyError: {message.addr}")
+                logging.info(f"KeyError: {message.addr}")
+            notify_remaining_users(message.addr)
+            return
 
     if value & selectors.EVENT_WRITE:
-        
+        if hasattr(message, 'outboundMessage') and message.outboundMessage:  # Use the correct attribute name
+            sent = sock.send(message.outboundMessage)
+            message.outboundMessage = message.outboundMessage[sent:]
         message.process_read_write(value)
-        
         gameInstance.checkIfGameStart()
         if gameInstance.liveGame == True:
             startGame()
@@ -204,16 +214,12 @@ def handling_Incoming_Data (key, value = None):
             
             message.toggleReadWriteMode("r")
             """
-    
-    
     '''
     jsonObject = message.getJson()
     
     if jsonObject["action"] == "Ready":
         name = input("Creating a new player to the game! What is your name")
-    '''    
-        
-        
+    '''     
     '''
     name = input("Creating a new player to the game! What is your name")
     givenPlayer = Player.Player(name)
@@ -223,8 +229,6 @@ def handling_Incoming_Data (key, value = None):
     if numPlayers < 2:
         print("Need to call create response and ask for more Ready requests here")
     '''
-    
-    
     '''
     if value & selectors.EVENT_READ:
         # Might need to increase buffer size based on data in the future?
@@ -242,9 +246,8 @@ def handling_Incoming_Data (key, value = None):
             sent_Data = socket.send(data.output_Data)
             data.output_Data = data.output_Data[sent_Data:]
     '''
+    
 # Main method for the server
-
-
 argv = sys.argv[1:]
 try: 
     opts, args = getopt.getopt(argv, "i:p:h:n") 
@@ -252,7 +255,6 @@ try:
 except (getopt.GetoptError, NameError): 
     print("please use python server.py -h if unfamiliar with the protocol")
     exit()
-
 for opt, arg in opts: 
     if opt in ['-i']: 
         host = arg
@@ -264,8 +266,6 @@ for opt, arg in opts:
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
-
-
 
 listening_Socket()
 
@@ -288,10 +288,21 @@ except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     client2rem = None
+    
     for client in gameInstance.playerList:
-        if client.getAddress() == key.data.addr: client2rem = client
-    client_List.remove(client2rem)
-    logging.info(f"Client list: {client_List}")
+        if client.getAddress() == key.data.addr: 
+            client2rem = client
+            break
+    
+    if client2rem is not None:
+        if client2rem in client_List:
+            client_List.remove(client2rem)
+            logging.info(f"Client list: {client_List}")
+        else:
+            logging.warning(f"Client {client2rem} was not in the client list")
+    else:
+        logging.warning(f"Client was not found in the player list")
+    
     key.fileobj.close()
 except KeyboardInterrupt:   
     print("caught keyboard interrupt, exiting")
