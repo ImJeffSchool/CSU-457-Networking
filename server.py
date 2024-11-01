@@ -43,7 +43,10 @@ def clientMsgBlast(msgContent):
             serverBlstMsg = Message.Message(selector, port, ipAddress, role='server', gameInstance=gameInstance)
             server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
             
-            selector.register(registryList.pop(0), server_Events, data=serverBlstMsg)
+            try:
+                selector.register(registryList.pop(0), server_Events, data=serverBlstMsg)
+            except Exception as e:
+                pass    
 
             #currSock = client.sock
             #serverBlstMsg = Message.Message(selector, currSock, client)
@@ -142,7 +145,7 @@ def updateGameState():
             }
             
             content = {
-                "action": "Blast",
+                "action": "Update",
                 "value": gameInstanceJson
             }
             
@@ -211,13 +214,24 @@ def accept_connection(sock):
     print('Accepted connection from this client: ', ipAddress)
     
 def startGame():
-    if len(registryList) > 0:
+    turnPlayer = 1
+    if gameInstance.round == 0:
         time.sleep(1)
         clientMsgBlast("Starting the game!")
         updateGameState()
+        turnMsg = "It is now player ", str(turnPlayer), "'s turn"
+        clientMsgBlast(turnMsg)
         
+        #player 1 has taken their turn 
+        gameInstance.incrementRound()
         
-    
+        while gameInstance.round > 0:
+            turnMsg = "It is now player ", str(turnPlayer), "'s turn"
+            clientMsgBlast(turnMsg)
+            
+            gameInstance.incrementRound()
+        
+    return
     """
     isOver = False
     
@@ -231,7 +245,14 @@ def startGame():
             
     #selector.close()
     """      
+def checkIfGameOver():
+    if gameInstance.getNumPlayers() < 2:
+        return True
+    if len(gameInstance.questionsANDanswers.currentQuestionBoard) == 0:
+        return True
+    return False
     
+        
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data

@@ -131,6 +131,9 @@ class Message:
             elif action == "Blast":
                 response = {"Action": "Blast", "Value": value}
             
+            elif action == "Update":
+                response = {"Action": "Update", "Value": value}
+            
             
                 #can modify this text to do multiple rounds and final round
                 # will change [TYPING INTO TERMINAL] 
@@ -177,6 +180,17 @@ class Message:
                 print("Response was: ", self.response["Value"])
                 
                 #gameInstance.liveGame = self.response["Value"]
+            elif self.response["Action"] == "YourTurn":
+                action = "PlayerSelection"
+                value = input("It is now your turn. Please select a question. (Enter like <ColNumber, RowNumber>")
+                request = {
+                    "type": "text/json",
+                    "encoding": "utf-8"
+                }
+                request["content"] = {"action": action, "value": value}
+                self.set_client_request(request)
+                
+                
             
             else:
                 self.toggleReadWriteMode("w")
