@@ -37,6 +37,15 @@ class Player:
         return self.isReady
     # def answerQuestion(self, answer):
         # need to fill out for json
+    def getName(self):
+        return self.name
+    
+    def setName(self, name):
+        self.name = name
+
+    def getPoints(self):
+        return self.points
+    
 
     def __repr__(self):
         return (f"Player: {self.name}\n"

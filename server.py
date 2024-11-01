@@ -26,7 +26,7 @@ client_List = []
 registryList = []
 gameInstance = Jeopardy.Jeopardy()
 
-def clientMsgBlast():
+def clientMsgBlast(msgContent):
     # send to all clients at once
     print("Into clientMsgBlast\n")
     for client in gameInstance.playerList:
@@ -52,9 +52,12 @@ def clientMsgBlast():
                 "QuestionBoard": JSONSerializableArray
             }
             """
+            
+            
+            
             content = {
                 "action": "Blast",
-                "value": "Test blast message"
+                "value": msgContent
             }
             #serverBlstMsg.set_server_request(content)
             
@@ -95,6 +98,76 @@ def notify_remaining_users(addr):
             message = f"Player {addr} has disconnected from the server"
             key.data.outboundMessage += message.encode('utf-8')
             print(f"Notified {key.data.addr} of the disconnection")
+
+def updateGameState():
+    # send to all clients at once
+    print("Into Update\n")
+    playerList = []
+    for client in gameInstance.playerList:
+        try:
+            ipAddress = client.getAddress()
+            port = client.getPort()
+            serverBlstMsg = Message.Message(selector, port, ipAddress, role='server', gameInstance=gameInstance)
+            #server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
+            
+            #selector.register(registryList.pop(0), server_Events, data=serverBlstMsg)
+            print("Port, IP, client are: ", port, ipAddress, client)
+            
+            '''
+            JSONSerializableArray = gameInstance.questionsANDanswers.currentQuestionBoard
+            JSONSerializableArray.toList()
+            '''
+            playerObj = {
+                "name" : client.getName(),
+                "points" : client.getPoints(),
+            }
+            
+            playerList.append(playerObj)
+            
+            questionObj = {
+                "CurrentBoard": gameInstance.questionsANDanswers.currentQuestionBoard
+            }
+            
+            gameInstanceJson = {
+                "liveGame" : gameInstance.liveGame,
+                "currPlayer": playerObj,
+                "QuestionBoard": questionObj
+            }
+            
+            content = {
+                "action": "Blast",
+                "value": gameInstanceJson
+            }
+            
+            contentBytes = serverBlstMsg._json_encode(content, "utf-8")
+            
+            jsonheader = {
+                "byteorder": sys.byteorder,
+                "content-type": "text/json",
+                "content-encoding": "utf-8",
+                "content-length": len(contentBytes),
+            }
+            
+            jsonheaderBytes = serverBlstMsg._json_encode(jsonheader, "utf-8")
+            messageHeader = struct.pack(">H", len(jsonheaderBytes))
+            message = messageHeader + jsonheaderBytes + contentBytes
+            serverBlstMsg._recv_buffer += message           
+
+            if serverBlstMsg._jsonheader_len is None:
+                serverBlstMsg.process_protoheader()
+
+            if serverBlstMsg._jsonheader_len is not None:
+                if serverBlstMsg.jsonheader is None:
+                    serverBlstMsg.process_jsonheader()
+
+            if serverBlstMsg.jsonheader:
+                serverBlstMsg.process_message()
+
+            serverBlstMsg.toggleReadWriteMode('w')
+            serverBlstMsg.process_read_write(2)
+        except Exception as e:
+            print("error is: ", e)
+            logging.info("Ran into trouble on the update message")
             
 # Method for listening to incoming connections
 def listening_Socket():
@@ -131,8 +204,10 @@ def accept_connection(sock):
     
 def startGame():
     if len(registryList) > 0:
-        time.sleep(10)
-        clientMsgBlast()
+        time.sleep(1)
+        clientMsgBlast("Starting the game!")
+        updateGameState()
+        
     """
     isOver = False
     
@@ -250,7 +325,7 @@ def handling_Incoming_Data (key, value = None):
 # Main method for the server
 argv = sys.argv[1:]
 try: 
-    opts, args = getopt.getopt(argv, "i:p:h:n") 
+    opts, args = getopt.getopt(argv, "i:p:hn") 
 
 except (getopt.GetoptError, NameError): 
     print("please use python server.py -h if unfamiliar with the protocol")
@@ -261,7 +336,7 @@ for opt, arg in opts:
     elif opt in ['-p']: 
         port = int(arg)
     elif opt in ['-h']:
-        print("python server.py -i <IP ADDRESS> -p <PORT NUMBER>")
+        print("Use python server.py -i <IP ADDRESS> -p <PORT NUMBER> to run the program")
         exit()
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")

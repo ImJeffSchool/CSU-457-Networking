@@ -86,7 +86,7 @@ for opt, arg in opts:
     elif opt in ['-p']: 
         port = int(arg) 
     elif opt in ['-h']:
-        print("python client.py -i <IP ADDRESS> -p <PORT NUMBER>")
+        print("Use python server.py -i <IP ADDRESS> -p <PORT NUMBER> to run the program")
         exit()
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
