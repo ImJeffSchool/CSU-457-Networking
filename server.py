@@ -211,12 +211,16 @@ def accept_connection(sock):
     logging.info(f"Client list: {repr(client_List)}")
     print('Accepted connection from this client: ', ipAddress)
     
-def startGame():
+def startGame(message):
     turnPlayer = 1
     if gameInstance.round == 0:
         time.sleep(1)
         clientMsgBlast("Starting the game!")
         updateGameState()
+        
+        if message.updateSent == True:
+            return
+        
         turnMsg = "It is now player ", str(turnPlayer), "'s turn"
         clientMsgBlast(turnMsg)
         
@@ -273,7 +277,7 @@ def handling_Incoming_Data (key, value = None):
         
         gameInstance.checkIfGameStart()
         if gameInstance.liveGame == True:
-            startGame()
+            startGame(message)
             #this logic is also the reason
             #p2 doesn't get a readied up message
             
