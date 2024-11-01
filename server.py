@@ -106,7 +106,6 @@ def clientMsgBlast(msgContent):
             print("error is: ", e)
             logging.info("Ran into trouble on the blast message")
 
-
 def updateGameState():
     # send to all clients at once
     print("Into Update\n")
@@ -179,7 +178,6 @@ def updateGameState():
             print("error is: ", e)
             logging.info("Ran into trouble on the update message")
 
-
 # Method for listening to incoming connections
 def listening_Socket():
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -245,14 +243,14 @@ def startGame():
             
     #selector.close()
     """      
+
 def checkIfGameOver():
     if gameInstance.getNumPlayers() < 2:
         return True
     if len(gameInstance.questionsANDanswers.currentQuestionBoard) == 0:
         return True
     return False
-    
-        
+            
 # Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
     message = key.data
@@ -345,15 +343,12 @@ def handling_Incoming_Data (key, value = None):
     '''
 # Main method for the server
 
-
 argv = sys.argv[1:]
 try: 
     opts, args = getopt.getopt(argv, "i:p:hn") 
-
 except (getopt.GetoptError, NameError): 
     print("please use python server.py -h if unfamiliar with the protocol")
     exit()
-
 for opt, arg in opts: 
     if opt in ['-i']: 
         host = arg
@@ -366,25 +361,18 @@ for opt, arg in opts:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
 
-
-
 listening_Socket()
 
 try:
-    prevEvents = None
     while True:
         events = selector.select(timeout=None)
-        if events != prevEvents:
-            for key, value in events:
-                if key.data is None:
-                    accept_connection(key.fileobj)
-                else:
-                    # print("In loop:", repr(key))
-                    # print("In loop value event mask:", repr(value))
-                    handling_Incoming_Data(key, value)
-            prevEvents = events
-        else:
-            prevEvents = None
+        for key, value in events:
+            if key.data is None:
+                accept_connection(key.fileobj)
+            else:
+                # print("In loop:", repr(key))
+                # print("In loop value event mask:", repr(value))
+                handling_Incoming_Data(key, value)
 except Exception as e:
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
     logging.info(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
