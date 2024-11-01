@@ -197,16 +197,13 @@ class Message:
         if self.jsonheader:
             self.process_message()
             
-            if self._jsonheader_len is not None:
-                if self.jsonheader is None:
-                    if not self.process_jsonheader():
-                        break
-            if self.jsonheader:
-                if not self.process_message():
-                    break
-            
-            self._jsonheader_len = None
-            self.jsonheader = None
+        if self._jsonheader_len is not None:
+            if self.jsonheader is None:
+                self.process_jsonheader()
+                    
+        if self.jsonheader:
+            self.process_message()
+
         #self.toggleReadWriteMode('w')
 
     def write(self):
