@@ -20,13 +20,10 @@ sel = selectors.DefaultSelector()
 
 def handling_Incoming_Data(key, value = None) :
     message = key.data
-    
     if value & selectors.EVENT_READ:
-        #print("repr of message obj (client): ", repr(message))
         message.processReadWrite(value)
     if value & selectors.EVENT_WRITE:
         message.processReadWrite(value)
-        print("Do another create request and send it off")
 
 def create_request(action, value=None):
     common_dict = {
@@ -35,15 +32,7 @@ def create_request(action, value=None):
     }
 
     if action == "Ready": common_dict["content"] = {"action": action}
-    elif action == "-i": common_dict["content"] = {"action": action}
-    elif action == "-p": common_dict["content"] = {"action": action}
-    elif action == "-n": common_dict["content"] = {"action": action}
-    elif action == "-h": common_dict["content"] = {"action": action}
-    if value : 
-        common_dict["content"] = {"action": action, "value": value}
-        
-    #print(common_dict)
-    #else: common_dict["content"] = {"action": action, "value": value}
+    if value : common_dict["content"] = {"action": action, "value": value}
 
     return common_dict
 
@@ -70,10 +59,8 @@ def startConnection(host, port):
     return message
 
 argv = sys.argv[1:]
-
 try: 
     opts, args = getopt.getopt(argv, "i:p:hn") 
-
 except (getopt.GetoptError, NameError): 
     print("please use python client.py -h if unfamiliar with the protocol")
     exit()
@@ -93,14 +80,8 @@ for opt, arg in opts:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
 
-
-
 action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
 request = create_request(action)
-
-#host, port = sys.argv[2], sys.argv[4]
-#dashI, dashP = sys.argv[1], sys.argv[3]
-
 
 message = startConnection(host, port)
 message.set_client_request(request)

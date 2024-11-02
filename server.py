@@ -264,8 +264,6 @@ def checkIfGameOver():
 def handling_Incoming_Data (key, value = None):
     message = key.data
     sock = key.fileobj
-    # print("In server handle connect", repr(message))
-    
     
     if message.responseSent == True:
         return
@@ -286,73 +284,7 @@ def handling_Incoming_Data (key, value = None):
         gameInstance.checkIfGameStart()
         if gameInstance.liveGame == True:
             startGame(message)
-            #this logic is also the reason
-            #p2 doesn't get a readied up message
-            
-        #else:
-            """
-            #print("repr of message: ", repr(message))
-            content = "Waiting for more players to connect..."
-            contentBytes = message._json_encode(content, "utf-8")
-            
-            jsonheader = {
-            "byteorder": sys.byteorder,
-            "content-type": "text/json",
-            "content-encoding": "utf-8",
-            "content-length": len(contentBytes),
-            }
-            
-            jsonheaderBytes = message._json_encode(jsonheader, "utf-8")
-            message_hdr = struct.pack(">H", len(jsonheaderBytes))
-            
-            resp = message_hdr + jsonheaderBytes + contentBytes
-
-            print("WHAT are we sending over: ", resp)
-            
-            message._send_buffer = resp
-            message.sock.send(message._send_buffer)
-            
-            
-            message.toggleReadWriteMode("r")
-            """
     
-    
-    '''
-    jsonObject = message.getJson()
-    
-    if jsonObject["action"] == "Ready":
-        name = input("Creating a new player to the game! What is your name")
-    '''    
-        
-        
-    '''
-    name = input("Creating a new player to the game! What is your name")
-    givenPlayer = Player.Player(name)
-    gameInstance.addPlayer(givenPlayer)
-    numPlayers = gameInstance.getNumPlayers()
-
-    if numPlayers < 2:
-        print("Need to call create response and ask for more Ready requests here")
-    '''
-    
-    
-    '''
-    if value & selectors.EVENT_READ:
-        # Might need to increase buffer size based on data in the future?
-        incoming_Data = socket.recv(1028)  
-        if incoming_Data:
-            data.output_Data += incoming_Data
-        else:
-            print(' Closing connection to: ', data.addr)
-            logging.info(f" Closing connection to: {data.addr}")
-            selector.unregister(socket)
-            socket.close()
-        
-    if value & selectors.EVENT_WRITE:
-        if data.output_Data:
-            sent_Data = socket.send(data.output_Data)
-            data.output_Data = data.output_Data[sent_Data:]
-    '''
 # Main method for the server
 
 argv = sys.argv[1:]
@@ -362,10 +294,8 @@ except (getopt.GetoptError, NameError):
     print("please use python server.py -h if unfamiliar with the protocol")
     exit()
 for opt, arg in opts: 
-    if opt in ['-i']: 
-        host = arg
-    elif opt in ['-p']: 
-        port = int(arg)
+    if opt in ['-i']: host = arg
+    elif opt in ['-p']: port = int(arg)
     elif opt in ['-h']:
         print("Use python server.py -i <IP ADDRESS> -p <PORT NUMBER> to run the program")
         exit()

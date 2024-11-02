@@ -125,14 +125,9 @@ class Message:
                 x, y = value.split(",")
                 question = self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
                 self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
-                response = {"Action": "SelectedQuestion", "Value": str(question)}
-                
+                response = {"Action": "SelectedQuestion", "Value": str(question)}         
             elif action == "PlayerAnswer":
                 print("TEST PLAYER ANSWER")
-            
-                #can modify this text to do multiple rounds and final round
-                # will change [TYPING INTO TERMINAL] 
-                # to "press ready button" later 
 
             # Need to queue that we want to respond to the player, 
             self.responseQueued = True
@@ -159,7 +154,6 @@ class Message:
         
         if self.response:
             self.request = None
-
             if self.response["Value"] == "You are Ready-ed Up!":
                 print(self.response["Value"], "Now waiting for other players...")
                 self.toggleReadWriteMode("r")
@@ -179,8 +173,7 @@ class Message:
                 value = input("It is now your turn. Please select a question. (Enter like <ColNumber, RowNumber>")
                 request["content"] = {"action": action, "value": value}
                 self.set_client_request(request)
-                self.toggleReadWriteMode("w")
-                
+                self.toggleReadWriteMode("w")   
             elif self.response["Action"] == "SelectedQuestion":
                 print(self.response["Value"])
                 action = "PlayerAnswer"
@@ -188,11 +181,9 @@ class Message:
                 request['content'] = {'action': action, 'value': value}
                 self.set_client_request(request)
                 self.toggleReadWriteMode('w')
-                
             else:
                 self.toggleReadWriteMode("w")
 
-            
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
             self.read()
@@ -207,6 +198,7 @@ class Message:
             data = self.sock.recv(4096)
         except BlockingIOError:
             return
+        
         if data:
             self._recv_buffer += data
         else:
@@ -216,7 +208,6 @@ class Message:
             if self._jsonheader_len is None:
                 if not self.process_protoheader():
                     break
-
             if self._jsonheader_len is not None:
                 if self.jsonheader is None:
                     if not self.process_jsonheader():
@@ -227,7 +218,6 @@ class Message:
             
             self._jsonheader_len = None
             self.jsonheader = None
-        #self.toggleReadWriteMode('w')
 
     def write(self):
         """
@@ -235,12 +225,8 @@ class Message:
         :param message: Message to be sent.
         """
         if self.role == 'server':
-            # print("We want to write as the server\n")
-            # print(f"Current Message OBJ is: {repr(self)}\n")
             self.handle_server_logic()
         else: 
-            # print("We want to write as the client\n")
-            # print(f"Current Message OBJ is: {repr(self)}\n")
             self.create_message()
             if self.request:
                 self.requestQueued = True
