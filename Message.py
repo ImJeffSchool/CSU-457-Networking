@@ -36,6 +36,7 @@ class Message:
         self.updateSent = None
 
     def create_message_server(self, response):
+        """Sets content: response, and sets type & encoding"""
         return {
             "type": "text/json",
             "encoding": "utf-8",
@@ -285,7 +286,6 @@ class Message:
 
     def toggleReadWriteMode(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
-        '''Was originally referred to as _set_selector_events_mask'''
         if mode == "r":
            # print("Client mode is now set to: r\n")            
             events = selectors.EVENT_READ

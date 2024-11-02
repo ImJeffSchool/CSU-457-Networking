@@ -12,28 +12,20 @@ import struct
 import getopt
 import time
 
-# TCP Server code for the project
-# Basic Server Setup:
-# 1. Create a server-side application that listens for incoming client connections on a specified port.
-# 2. Implement a mechanism to handle multiple client connections simultaneously.
-# 3. Log connection and disconnection events.
-
 gameInstance = Jeopardy.Jeopardy()
 
 logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
-#HOST = '127.0.0.1'                     # The server's hostname or IP address to listen on all interfaces
-#PORT = 54323                          # The port used by the server
 MAX_NUM_CLIENTS = 4
-# ^ Constants for now, but will be changed later
 
 client_List = []
 
 registryList = []
 
 def clientMsgBlast(msgContent):
-    # send to all clients at once
+    """send to all clients at once"""
+
     print("Into clientMsgBlast\n")
     for client in gameInstance.playerList:
         try:
@@ -48,30 +40,12 @@ def clientMsgBlast(msgContent):
             except Exception as e:
                 pass    
 
-            #currSock = client.sock
-            #serverBlstMsg = Message.Message(selector, currSock, client)
             print("Port, IP, client are: ", port, ipAddress, client)
-            
-            """
-            JSONSerializableArray = gameInstance.questionsANDanswers.currentQuestionBoard
-            JSONSerializableArray.toList()
-            
-            gameInstanceJson = {
-                "liveGame" : gameInstance.liveGame,
-                "currentPlayer": client.name,
-                "QuestionBoard": JSONSerializableArray
-            }
-            """
-            
-            
             
             content = {
                 "action": "Blast",
                 "value": msgContent
             }
-            
-            #serverBlstMsg.set_server_request(content)
-            
             
             contentBytes = serverBlstMsg._json_encode(content, "utf-8")
             jsonheader = {
@@ -83,10 +57,7 @@ def clientMsgBlast(msgContent):
             jsonheaderBytes = serverBlstMsg._json_encode(jsonheader, "utf-8")
             messageHeader = struct.pack(">H", len(jsonheaderBytes))
             message = messageHeader + jsonheaderBytes + contentBytes
-            #serverBlstMsg.response_created = True
-            serverBlstMsg._recv_buffer += message
-            #print("serverBlstMsg._recv_buffer is: ",serverBlstMsg._recv_buffer)
-            
+            serverBlstMsg._recv_buffer += message            
 
             if serverBlstMsg._jsonheader_len is None:
                 serverBlstMsg.process_protoheader()
@@ -100,14 +71,13 @@ def clientMsgBlast(msgContent):
 
             serverBlstMsg.toggleReadWriteMode('w')
             serverBlstMsg.process_read_write(2)
-
-            
+      
         except Exception as e:
             print("error is: ", e)
             logging.info("Ran into trouble on the blast message")
 
 def updateGameState():
-    # send to all clients at once
+    """send to all clients at once"""
     print("Into Update\n")
     playerList = []
     for client in gameInstance.playerList:
@@ -178,8 +148,8 @@ def updateGameState():
             print("error is: ", e)
             logging.info("Ran into trouble on the update message")
 
-# Method for listening to incoming connections
 def listening_Socket():
+    """Method for listening to incoming connections"""
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     listen_Socket.bind((host, port))
@@ -190,12 +160,10 @@ def listening_Socket():
     print(' Server is listening on: ', (host, port))
     logging.info(f" Server is listening on: {host}:{port}")
 
-# Method for accepting incoming connections
 def accept_connection(sock):
-    #registryList.append(sock)
+    """Method for accepting incoming connections"""
     connection, ipAddress = sock.accept()
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    #server_Data = types.SimpleNamespace(addr=ipAddress, input_Data=b"", output_Data=b"")
     message = Message.Message(selector, connection, ipAddress, role='server', gameInstance=gameInstance)
 
     connection.setblocking(False)
@@ -212,6 +180,7 @@ def accept_connection(sock):
     print('Accepted connection from this client: ', ipAddress)
     
 def startGame(message):
+    """Starting main game logic once all players are ready"""
     turnPlayer = 1
     if gameInstance.round == 0:
         time.sleep(1)
@@ -238,30 +207,18 @@ def startGame(message):
             message.process_read_write(2)
             message.toggleReadWriteMode("r")
         
-    return
-    """
-    isOver = False
-    
-    while not isOver:
-        for player in gameInstance.playerList:
-            pointsList = []
-            pointsList.append(player.points)
-        mostPoints = max(pointsList)
-        pointsList.clear()
-
-            
-    #selector.close()
-    """      
+    return   
 
 def checkIfGameOver():
+    """Check if the game is over..."""
     if gameInstance.getNumPlayers() < 2:
         return True
     if len(gameInstance.questionsANDanswers.currentQuestionBoard) == 0:
         return True
     return False
             
-# Method for handling incoming data
 def handling_Incoming_Data (key, value = None):
+    """Method for handling incoming data"""
     message = key.data
     sock = key.fileobj
     
@@ -286,7 +243,6 @@ def handling_Incoming_Data (key, value = None):
             startGame(message)
     
 # Main method for the server
-
 argv = sys.argv[1:]
 try: 
     opts, args = getopt.getopt(argv, "i:p:hn") 
