@@ -227,11 +227,13 @@ def startGame(message):
         #player 1 has taken their turn 
         gameInstance.incrementRound()
         
-        while gameInstance.round > 0:
+        if gameInstance.round > 0:
             turnMsg = "It is now player ", str(turnPlayer), "'s turn"
-            clientMsgBlast(turnMsg)
-            
+            #clientMsgBlast(turnMsg)
+            message.set_server_response(message.create_message_server({"Action": "YourTurn", "Value": str(gameInstance.playerList[turnPlayer-1].getAddress())}))
+            message.create_message()
             gameInstance.incrementRound()
+            message.process_read_write(2)
         
     return
     """

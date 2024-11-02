@@ -33,6 +33,7 @@ class Message:
         self.requestQueued = None
         self.responseQueued = None
         self.responseSent = None
+        self.updateSent = None
 
     def create_message_server(self, response):
         return {
@@ -115,25 +116,15 @@ class Message:
                     #print(f"{repr(player)} isReady is now {player.getReadyState()}") 
                     response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
                     #"You're Ready-ed Up!"
-            elif action == "-h":
-                response = {"Action": "-h", "Value": "Welcome to Jeopardy! In order to play the game you must first ready up by [TYPING READY INTO THE TERMINAL].Once multiple players have readied up, the game will start. In this game you will select a question from the board, then answer it. Players will take turns responding to a question. Answer a question correctly, and you receive points! Answer a question incorrectly, and you will lose points. When all of the questions on the board have been selected the game will end. Whoever has the most points wins!"}
-                
-            elif action == "-i":
-                response = {"Action": "-i", "Value": "The IP address of the server is 127.0.0.1"}
-            
-            elif action == "-p":
-                response = {"Action": "-p", "Value": "The server's port number is 54321"}
-            
-                
-            elif action == "-n":
-                response = {"Action": "-n", "Value": "The name of the DNS server is: CRAWFORD.ColoState.EDU"}
-            
             elif action == "Blast":
                 response = {"Action": "Blast", "Value": value}
-            
             elif action == "Update":
                 response = {"Action": "Update", "Value": value}
-            
+                self.updateSent = True
+            elif action == "PlayerSelection":
+                x, y = value.split(",")
+                question = self.gameInstance.questionsANDanswers.currentQuestionBoard[x][y]
+                response = {"Ation": "SelectedQuestion", "Value": str(question)}
             
                 #can modify this text to do multiple rounds and final round
                 # will change [TYPING INTO TERMINAL] 
@@ -164,7 +155,6 @@ class Message:
             if self.response["Value"] == "You are Ready-ed Up!":
                 print(self.response["Value"], "Now waiting for other players...")
                 self.toggleReadWriteMode("r")
-            
             elif self.response["Action"] == "Quit":
                 #enter the logic to sock.remove() a player then 
                 # msg blast to all other players who disconnected
@@ -172,15 +162,12 @@ class Message:
             elif self.response["Action"] == "Blast":
                 self.toggleReadWriteMode("r")
                 print(self.response["Value"])
-            
             elif self.response["Action"] == "Update":
-                gameInstance = Jeopardy.Jeopardy()
-                print("TODO")
-                self.toggleReadWriteMode("r")
-                print("Response was: ", self.response["Value"])
-                
+                print(self.response["Value"]["QuestionBoard"]["CurrentBoard"])
+                self.toggleReadWriteMode('r')
                 #gameInstance.liveGame = self.response["Value"]
             elif self.response["Action"] == "YourTurn":
+                print("YourTurn logic hit")
                 action = "PlayerSelection"
                 value = input("It is now your turn. Please select a question. (Enter like <ColNumber, RowNumber>")
                 request = {
@@ -189,13 +176,11 @@ class Message:
                 }
                 request["content"] = {"action": action, "value": value}
                 self.set_client_request(request)
-                
-                
-            
+                self.toggleReadWriteMode("w")
             else:
                 self.toggleReadWriteMode("w")
-            # Handle client-side specific actions here
-            #print(f"Client received: {self.response}\n")
+
+            print("Exiting handle_client_logic")
             
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
