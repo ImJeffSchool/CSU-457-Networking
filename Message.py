@@ -123,8 +123,12 @@ class Message:
                 self.updateSent = True
             elif action == "PlayerSelection":
                 x, y = value.split(",")
-                question = self.gameInstance.questionsANDanswers.currentQuestionBoard[x][y]
+                question = self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
+                self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
                 response = {"Action": "SelectedQuestion", "Value": str(question)}
+                
+            elif action == "PlayerAnswer":
+                print("TEST PLAYER ANSWER")
             
                 #can modify this text to do multiple rounds and final round
                 # will change [TYPING INTO TERMINAL] 
@@ -148,6 +152,10 @@ class Message:
         if self.request:
             pass
         
+        request = {
+                    "type": "text/json",
+                    "encoding": "utf-8"
+                }
         
         if self.response:
             self.request = None
@@ -167,20 +175,23 @@ class Message:
                 self.toggleReadWriteMode('r')
                 #gameInstance.liveGame = self.response["Value"]
             elif self.response["Action"] == "YourTurn":
-                print("YourTurn logic hit")
                 action = "PlayerSelection"
                 value = input("It is now your turn. Please select a question. (Enter like <ColNumber, RowNumber>")
-                request = {
-                    "type": "text/json",
-                    "encoding": "utf-8"
-                }
                 request["content"] = {"action": action, "value": value}
                 self.set_client_request(request)
                 self.toggleReadWriteMode("w")
+                
+            elif self.response["Action"] == "SelectedQuestion":
+                print(self.response["Value"])
+                action = "PlayerAnswer"
+                value = input("Please enter your answer to the question: ")
+                request['content'] = {'action': action, 'value': value}
+                self.set_client_request(request)
+                self.toggleReadWriteMode('w')
+                
             else:
                 self.toggleReadWriteMode("w")
 
-            print("Exiting handle_client_logic")
             
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:

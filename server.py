@@ -236,6 +236,7 @@ def startGame(message):
             message.create_message()
             gameInstance.incrementRound()
             message.process_read_write(2)
+            message.toggleReadWriteMode("r")
         
     return
     """
@@ -274,7 +275,10 @@ def handling_Incoming_Data (key, value = None):
         message.responseSent = True
         registryList.append(sock)
         selector.unregister(sock)
-
+        
+    if message.response["content"]["Action"] == "SelectedQuestion":
+        value = 2
+    
     if value & selectors.EVENT_WRITE:
         
         message.process_read_write(value)
