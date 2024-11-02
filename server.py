@@ -229,6 +229,8 @@ def startGame(message):
         
         if gameInstance.round > 0:
             turnMsg = "It is now player ", str(turnPlayer), "'s turn"
+            currPlayer = gameInstance.playerList[turnPlayer-1]
+            message = Message.Message(selector, currPlayer.getPort(), currPlayer.getAddress(), role='server', gameInstance=gameInstance)
             #clientMsgBlast(turnMsg)
             message.set_server_response(message.create_message_server({"Action": "YourTurn", "Value": str(gameInstance.playerList[turnPlayer-1].getAddress())}))
             message.create_message()

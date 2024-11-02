@@ -124,7 +124,7 @@ class Message:
             elif action == "PlayerSelection":
                 x, y = value.split(",")
                 question = self.gameInstance.questionsANDanswers.currentQuestionBoard[x][y]
-                response = {"Ation": "SelectedQuestion", "Value": str(question)}
+                response = {"Action": "SelectedQuestion", "Value": str(question)}
             
                 #can modify this text to do multiple rounds and final round
                 # will change [TYPING INTO TERMINAL] 
