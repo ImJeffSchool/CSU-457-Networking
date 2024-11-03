@@ -1,11 +1,16 @@
 import Player
 import Question
+import random
 
 class Jeopardy:
     def __init__(self):
         self.liveGame = False
         self.playerList = []
         self.questionsANDanswers = Question.Question()
+        self.round = 0
+        self.playerGuess = None
+        self.currentPlayer = Player.Player("Player0")
+        self.turnPlayer = 0
 
     def toggleLiveGame(self):
         if self.liveGame == False: self.liveGame = True
@@ -18,10 +23,21 @@ class Jeopardy:
         return len(self.playerList)
     
     def checkIfGameStart(self):
+        if self.liveGame == True:
+            return
         listOfReadyPlayers = []
         for player in self.playerList:
             listOfReadyPlayers.append(player.isReady)
             
         if all(listOfReadyPlayers) == True and len(listOfReadyPlayers) > 1:
             self.toggleLiveGame()
-        
+            
+    def incrementRound(self):
+        self.round += 0.5
+    
+    def setTurnPlayer(self, turnPlayer):
+        self.turnPlayer = turnPlayer
+    
+    def getTurnPlayer(self):
+        return self.turnPlayer
+

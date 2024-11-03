@@ -33,8 +33,12 @@ class Message:
         self.requestQueued = None
         self.responseQueued = None
         self.responseSent = None
+        self.updateOrBlastSent = None
+        self.YourTurnSent = None
+        
 
     def create_message_server(self, response):
+        """Sets content: response, and sets type & encoding"""
         return {
             "type": "text/json",
             "encoding": "utf-8",
@@ -115,26 +119,35 @@ class Message:
                     #print(f"{repr(player)} isReady is now {player.getReadyState()}") 
                     response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
                     #"You're Ready-ed Up!"
-            elif action == "-h":
-                response = {"Action": "-h", "Value": "Welcome to Jeopardy! In order to play the game you must first ready up by [TYPING READY INTO THE TERMINAL].Once multiple players have readied up, the game will start. In this game you will select a question from the board, then answer it. Players will take turns responding to a question. Answer a question correctly, and you receive points! Answer a question incorrectly, and you will lose points. When all of the questions on the board have been selected the game will end. Whoever has the most points wins!"}
-                
-            elif action == "-i":
-                response = {"Action": "-i", "Value": "The IP address of the server is 127.0.0.1"}
-            
-            elif action == "-p":
-                response = {"Action": "-p", "Value": "The server's port number is 54321"}
-            
-                
-            elif action == "-n":
-                response = {"Action": "-n", "Value": "The name of the DNS server is: CRAWFORD.ColoState.EDU"}
-            
             elif action == "Blast":
                 response = {"Action": "Blast", "Value": value}
-            
-            
-                #can modify this text to do multiple rounds and final round
-                # will change [TYPING INTO TERMINAL] 
-                # to "press ready button" later 
+                self.updateOrBlastSent = True
+            elif action == "Update":
+                response = {"Action": "Update", "Value": value}
+                self.updateOrBlastSent = True
+            elif action == "PlayerSelection":
+                x, y = value.split(",")
+                question = self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
+                self.gameInstance.playerGuess = x, y
+                self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
+                response = {"Action": "SelectedQuestion", "Value": str(question)}   
+            elif action == "PlayerAnswer":
+                x, y = self.gameInstance.playerGuess
+                response = {"Action": "ValidateAnswer", "Value": ""}   
+                
+                if value == self.gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]:
+                    for i in range(len(self.gameInstance.playerList)):
+                        if player.getAddress == self.addr:
+                            self.gameInstance.playerList[i]._addPoints(1)
+                            self.gameInstance.playerList[i].hasTakenTurn = True
+                            response["Value"] = "You got it right! Awarding points"
+                else:
+                    for i in range(len(self.gameInstance.playerList)):
+                        if self.gameInstance.playerList[i].getAddress() == self.addr:
+                            self.gameInstance.currentPlayer = self.gameInstance.playerList[i+1]
+                            self.gameInstance.playerList[i].hasTakenTurn = True
+                            response["Value"] = "You got it wrong! You should feel bad about yourself"
+                
 
             # Need to queue that we want to respond to the player, 
             self.responseQueued = True
@@ -154,14 +167,16 @@ class Message:
         if self.request:
             pass
         
+        request = {
+                    "type": "text/json",
+                    "encoding": "utf-8"
+                }
         
         if self.response:
             self.request = None
-
             if self.response["Value"] == "You are Ready-ed Up!":
                 print(self.response["Value"], "Now waiting for other players...")
                 self.toggleReadWriteMode("r")
-            
             elif self.response["Action"] == "Quit":
                 #enter the logic to sock.remove() a player then 
                 # msg blast to all other players who disconnected
@@ -169,20 +184,29 @@ class Message:
             elif self.response["Action"] == "Blast":
                 self.toggleReadWriteMode("r")
                 print(self.response["Value"])
-            
             elif self.response["Action"] == "Update":
-                gameInstance = Jeopardy.Jeopardy()
-                print("TODO")
-                self.toggleReadWriteMode("r")
-                print("Response was: ", self.response["Value"])
-                
+                print(self.response["Value"]["QuestionBoard"]["CurrentBoard"])
+                self.toggleReadWriteMode('r')
                 #gameInstance.liveGame = self.response["Value"]
-            
+            elif self.response["Action"] == "YourTurn":
+                self.YourTurnSent = True
+                action = "PlayerSelection"
+                value = input("It is now your turn. Please select a question. (Enter like <ColNumber, RowNumber>")
+                request["content"] = {"action": action, "value": value}
+                self.set_client_request(request)
+                self.toggleReadWriteMode("w")   
+            elif self.response["Action"] == "SelectedQuestion":
+                print(self.response["Value"])
+                action = "PlayerAnswer"
+                value = input("Please enter your answer to the question: ")
+                request['content'] = {'action': action, 'value': value}
+                self.set_client_request(request)
+                self.toggleReadWriteMode('w')
+            elif self.response["Action"] == "ValidateAnswer":
+                print(self.response["Value"])
             else:
                 self.toggleReadWriteMode("w")
-            # Handle client-side specific actions here
-            #print(f"Client received: {self.response}\n")
-            
+
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
             self.read()
@@ -197,6 +221,7 @@ class Message:
             data = self.sock.recv(4096)
         except BlockingIOError:
             return
+        
         if data:
             self._recv_buffer += data
         else:
@@ -206,7 +231,6 @@ class Message:
             if self._jsonheader_len is None:
                 if not self.process_protoheader():
                     break
-
             if self._jsonheader_len is not None:
                 if self.jsonheader is None:
                     if not self.process_jsonheader():
@@ -217,7 +241,6 @@ class Message:
             
             self._jsonheader_len = None
             self.jsonheader = None
-        #self.toggleReadWriteMode('w')
 
     def write(self):
         """
@@ -225,12 +248,8 @@ class Message:
         :param message: Message to be sent.
         """
         if self.role == 'server':
-            # print("We want to write as the server\n")
-            # print(f"Current Message OBJ is: {repr(self)}\n")
             self.handle_server_logic()
         else: 
-            # print("We want to write as the client\n")
-            # print(f"Current Message OBJ is: {repr(self)}\n")
             self.create_message()
             if self.request:
                 self.requestQueued = True
@@ -242,6 +261,9 @@ class Message:
             try: 
                 sent = self.sock.send(self._send_buffer)
                 print("Sent!!!!\n")
+                if self.role == "server": 
+                    if self.updateOrBlastSent == True:
+                        self.toggleReadWriteMode("r")
             except BlockingIOError:
                 pass
             else:
@@ -289,7 +311,6 @@ class Message:
 
     def toggleReadWriteMode(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
-        '''Was originally referred to as _set_selector_events_mask'''
         if mode == "r":
            # print("Client mode is now set to: r\n")            
             events = selectors.EVENT_READ
