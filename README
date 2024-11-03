@@ -2,31 +2,31 @@
 
 This is a simple Game show example implemented using Python and sockets.
 
-**How to play:**
+# How to play:
 1. **Start the server:** Run the `server.py` script. Starts a pre-game lobby, and awaits 2 players to connect and ready up.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals. Once a player connects, they may adjust game settings and ready up.
 3. **Play the game:** Jeopardy style game where players, in a round-robin fashion, select trivia catagories and a difficulty level. Players take turns answering their selected questions, being awarded respective points based on the difficulty tier. An incorrect answer allows the other player a chance to answer the question before taking their respective turn. 
 
-**Message Protocol:**
+# Message Protocol:
 1. Players who get connected to the server must then ready up or quit. 
 2. Messages will be defined as a JSON type scheme.
 3. Various message types such as quitting and joining the game.
 4. Game will have expected response messages such as getting a question right or getting a question wrong.
 5. When playing the game the user will need to choose a row and column to specify a question.
 
-**File Structure**
+# File Structure:
 'server.py': Handles the serverside game logic, updateing the current game state, broadcasting to players, and handling the retrieval of questions as well as validation of answers.
 'client.py': Handles the clientside connection and game logic updates. The server and client each have an associated gameInstance object to ensure consistent game state for all connected players.
-'Message.py': Handles the message objects for the server and client. Sends a JSON object that signals things like "ReadyUp" and "QuestionSelection."
+'Message.py': Handles the message objects for the server and client. Sends a JSON object that signals things like *ReadyUp* and *QuestionSelection.*
 'Jeopardy.py': Handles the game state, keeping a list of all players and the current quesiton and answers board.
 'Player.py': Handles the individual player data, things like their name, points, connected IP and port. 
 
-**Technologies used:**
+# Technologies used:
 * Python
 * Tkinter Python GUI Library (built into base Python)
 * Sockets
 
-**Additional resources:**
+# Additional resources:
 * Tkinter: https://docs.python.org/3/library/tkinter.html
 * [Link to sockets tutorial]
 
