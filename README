@@ -5,8 +5,7 @@ This is a simple Game show example implemented using Python and sockets.
 **How to play:**
 1. **Start the server:** Run the `server.py` script. Starts a pre-game lobby, and awaits 2 players to connect and ready up.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals. Once a player connects, they may adjust game settings and ready up.
-3. **Play the game:** Jeopardy style game where players, in a round-robin fashion, select trivia catagories and a difficulty level. Players take turns answering their selected questions, being awarded respective points based on the difficulty tier. 
-                      An incorrect answer allows the other player a chance to answer the question before taking their respective turn. 
+3. **Play the game:** Jeopardy style game where players, in a round-robin fashion, select trivia catagories and a difficulty level. Players take turns answering their selected questions, being awarded respective points based on the difficulty tier. An incorrect answer allows the other player a chance to answer the question before taking their respective turn. 
 
 **Message Protocol:**
 1. Players who get connected to the server must then ready up or quit. 
