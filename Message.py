@@ -33,7 +33,9 @@ class Message:
         self.requestQueued = None
         self.responseQueued = None
         self.responseSent = None
-        self.updateSent = None
+        self.updateOrBlastSent = None
+        self.YourTurnSent = None
+        
 
     def create_message_server(self, response):
         """Sets content: response, and sets type & encoding"""
@@ -119,16 +121,33 @@ class Message:
                     #"You're Ready-ed Up!"
             elif action == "Blast":
                 response = {"Action": "Blast", "Value": value}
+                self.updateOrBlastSent = True
             elif action == "Update":
                 response = {"Action": "Update", "Value": value}
-                self.updateSent = True
+                self.updateOrBlastSent = True
             elif action == "PlayerSelection":
                 x, y = value.split(",")
                 question = self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
+                self.gameInstance.playerGuess = x, y
                 self.gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
-                response = {"Action": "SelectedQuestion", "Value": str(question)}         
+                response = {"Action": "SelectedQuestion", "Value": str(question)}   
             elif action == "PlayerAnswer":
-                print("TEST PLAYER ANSWER")
+                x, y = self.gameInstance.playerGuess
+                response = {"Action": "ValidateAnswer", "Value": ""}   
+                
+                if value == self.gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]:
+                    for i in range(len(self.gameInstance.playerList)):
+                        if player.getAddress == self.addr:
+                            self.gameInstance.playerList[i]._addPoints(1)
+                            self.gameInstance.playerList[i].hasTakenTurn = True
+                            response["Value"] = "You got it right! Awarding points"
+                else:
+                    for i in range(len(self.gameInstance.playerList)):
+                        if self.gameInstance.playerList[i].getAddress() == self.addr:
+                            self.gameInstance.currentPlayer = self.gameInstance.playerList[i+1]
+                            self.gameInstance.playerList[i].hasTakenTurn = True
+                            response["Value"] = "You got it wrong! You should feel bad about yourself"
+                
 
             # Need to queue that we want to respond to the player, 
             self.responseQueued = True
@@ -170,6 +189,7 @@ class Message:
                 self.toggleReadWriteMode('r')
                 #gameInstance.liveGame = self.response["Value"]
             elif self.response["Action"] == "YourTurn":
+                self.YourTurnSent = True
                 action = "PlayerSelection"
                 value = input("It is now your turn. Please select a question. (Enter like <ColNumber, RowNumber>")
                 request["content"] = {"action": action, "value": value}
@@ -182,6 +202,8 @@ class Message:
                 request['content'] = {'action': action, 'value': value}
                 self.set_client_request(request)
                 self.toggleReadWriteMode('w')
+            elif self.response["Action"] == "ValidateAnswer":
+                print(self.response["Value"])
             else:
                 self.toggleReadWriteMode("w")
 
@@ -239,6 +261,9 @@ class Message:
             try: 
                 sent = self.sock.send(self._send_buffer)
                 print("Sent!!!!\n")
+                if self.role == "server": 
+                    if self.updateOrBlastSent == True:
+                        self.toggleReadWriteMode("r")
             except BlockingIOError:
                 pass
             else:

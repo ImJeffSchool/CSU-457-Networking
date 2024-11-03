@@ -11,17 +11,19 @@ import Message
 import struct
 import getopt
 import time
+import random
 
 gameInstance = Jeopardy.Jeopardy()
 
 logging.basicConfig(filename='Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() # Selector object to multiplex I/O operations
 
-MAX_NUM_CLIENTS = 4
+MAX_NUM_CLIENTS = 2
 
 client_List = []
 
 registryList = []
+
 
 def clientMsgBlast(msgContent):
     """send to all clients at once"""
@@ -181,33 +183,55 @@ def accept_connection(sock):
     
 def startGame(message):
     """Starting main game logic once all players are ready"""
-    turnPlayer = 1
+        
     if gameInstance.round == 0:
-        time.sleep(1)
+        turnPlayer = genInitialTurnPlayer()
+        gameInstance.setTurnPlayer(turnPlayer)
+        gameInstance.currentPlayer = gameInstance.playerList[turnPlayer-1]
+        
         clientMsgBlast("Starting the game!")
+        time.sleep(1)
         updateGameState()
-        
-        if message.updateSent == True:
-            return
-        
         turnMsg = "It is now player ", str(turnPlayer), "'s turn"
         clientMsgBlast(turnMsg)
         
-        #player 1 has taken their turn 
-        gameInstance.incrementRound()
+        #if gameInstance.round == 1:
+        message = Message.Message(selector, gameInstance.currentPlayer.getPort(), gameInstance.currentPlayer.getAddress(), role='server', gameInstance=gameInstance)
+        message.set_server_response(message.create_message_server({"Action": "YourTurn", "Value": str(gameInstance.playerList[turnPlayer-1].getAddress())}))
+        message.create_message()
+        message.process_read_write(2)
+        message.toggleReadWriteMode("r")
+
+    elif gameInstance.round != 0 and gameInstance.round %1 == 0:
+        turnPlayer = determineNextTurn(gameInstance.getTurnPlayer())
+        gameInstance.setTurnPlayer(turnPlayer)
+        gameInstance.currentPlayer = gameInstance.playerList[turnPlayer-1]
         
-        if gameInstance.round > 0:
-            turnMsg = "It is now player ", str(turnPlayer), "'s turn"
-            currPlayer = gameInstance.playerList[turnPlayer-1]
-            message = Message.Message(selector, currPlayer.getPort(), currPlayer.getAddress(), role='server', gameInstance=gameInstance)
-            #clientMsgBlast(turnMsg)
-            message.set_server_response(message.create_message_server({"Action": "YourTurn", "Value": str(gameInstance.playerList[turnPlayer-1].getAddress())}))
-            message.create_message()
-            gameInstance.incrementRound()
-            message.process_read_write(2)
-            message.toggleReadWriteMode("r")
+        updateGameState()
+        turnMsg = "It is now player ", str(turnPlayer), "'s turn"
+        clientMsgBlast(turnMsg)
+    
+        message = Message.Message(selector, gameInstance.currentPlayer.getPort(), gameInstance.currentPlayer.getAddress(), role='server', gameInstance=gameInstance)
+        message.set_server_response(message.create_message_server({"Action": "YourTurn", "Value": str(gameInstance.playerList[turnPlayer-1].getAddress())}))
+        message.create_message()
+        message.process_read_write(2)
+        message.toggleReadWriteMode("r")
+            
+    gameInstance.incrementRound()        
+    return
+    #player 1 has taken their turn 
+    #gameInstance.incrementRound()
+    
+    #turnPlayer = determineNextTurn(turnPlayer)
         
     return   
+
+def writeYourTurnResponse():
+    message = Message.Message(selector, gameInstance.currentPlayer.getPort(), gameInstance.currentPlayer.getAddress(), role='server', gameInstance=gameInstance)
+    message.set_server_response(message.create_message_server({"Action": "YourTurn", "Value": str(gameInstance.playerList[gameInstance.turnPlayer-1].getAddress())}))
+    message.create_message()
+    message.process_read_write(2)
+    message.toggleReadWriteMode("r")
 
 def checkIfGameOver():
     """Check if the game is over..."""
@@ -216,23 +240,53 @@ def checkIfGameOver():
     if len(gameInstance.questionsANDanswers.currentQuestionBoard) == 0:
         return True
     return False
-            
+    
+def genInitialTurnPlayer():
+    randNum = random.randint(1,MAX_NUM_CLIENTS)
+    return randNum 
+
+def determineNextTurn(currentTurn):
+    nextTurn = 0
+    if currentTurn+1 > MAX_NUM_CLIENTS:
+        nextTurn = 1
+    else:
+        nextTurn = currentTurn+1
+    return nextTurn
+
+
+
 def handling_Incoming_Data (key, value = None):
     """Method for handling incoming data"""
     message = key.data
     sock = key.fileobj
     
+    
+    
     if message.responseSent == True:
-        return
+        value = 1
+    
     # print(f"R/W/value Flag set to: {value}")
     if value & selectors.EVENT_READ:
         message.process_read_write(value)
         message.responseSent = True
-        registryList.append(sock)
-        selector.unregister(sock)
         
-    if message.response["content"]["Action"] == "SelectedQuestion":
-        value = 2
+        try:
+            if message.response["content"]["Action"] == "Ready":
+                registryList.append(sock)
+                selector.unregister(sock)
+        except Exception:
+            pass
+        
+        try:
+            if message.response["content"]["Action"] == "ValidateAnswer":
+                value = 2
+        except Exception:
+            pass
+    try: 
+        if message.response["content"]["Action"] == "SelectedQuestion":
+            value = 2
+    except Exception:
+        pass
     
     if value & selectors.EVENT_WRITE:
         

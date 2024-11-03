@@ -1,5 +1,6 @@
 import Player
 import Question
+import random
 
 class Jeopardy:
     def __init__(self):
@@ -7,6 +8,9 @@ class Jeopardy:
         self.playerList = []
         self.questionsANDanswers = Question.Question()
         self.round = 0
+        self.playerGuess = None
+        self.currentPlayer = Player.Player("Player0")
+        self.turnPlayer = 0
 
     def toggleLiveGame(self):
         if self.liveGame == False: self.liveGame = True
@@ -29,4 +33,11 @@ class Jeopardy:
             self.toggleLiveGame()
             
     def incrementRound(self):
-        self.round += 1
+        self.round += 0.5
+    
+    def setTurnPlayer(self, turnPlayer):
+        self.turnPlayer = turnPlayer
+    
+    def getTurnPlayer(self):
+        return self.turnPlayer
+

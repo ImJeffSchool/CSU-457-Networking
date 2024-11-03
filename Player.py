@@ -8,6 +8,7 @@ class Player:
         self.isReady = False
         self.address = None
         self.port = None
+        self.hasTakenTurn = False
 
     def _addPoints(self, points):
         self.points += points
