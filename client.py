@@ -77,7 +77,6 @@ action = input("When you are ready to start the game please type \"Ready\"")
 request = create_request(action)
 
 message = startConnection(host, port)
-message.set_client_request(request)
 
 try:
     while True:

@@ -28,16 +28,12 @@ class Player:
     def getPort(self):
         return self.port
 
-    # def askQuestion(self, questionVal):
-        # need to fill out for json
-
     def setReadyState(self, state):
         self.isReady = state
 
     def getReadyState(self):
         return self.isReady
-    # def answerQuestion(self, answer):
-        # need to fill out for json
+    
     def getName(self):
         return self.name
     
@@ -47,7 +43,6 @@ class Player:
     def getPoints(self):
         return self.points
     
-
     def __repr__(self):
         return (f"Player: {self.name}\n"
               f"Points: {self.points}\n"

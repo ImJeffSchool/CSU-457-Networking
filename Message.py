@@ -169,5 +169,4 @@ class Message:
                 f"JSON Header Length: {self._jsonheader_len}\n"
                 f"JSON Header: {self.jsonheader}\n"
                 f"Response: {self.response}\n"
-                f"Request: {self.request}\n"
-                f"PrevResponse: {self.prevResponse}\n")
+                f"Request: {self.request}\n")
