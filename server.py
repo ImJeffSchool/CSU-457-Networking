@@ -13,3 +13,83 @@ import getopt
 import time
 import random
 
+# Selector object to multiplex I/O operations & logging for file
+logging.basicConfig(filename='Server.log', level=logging.INFO)
+selector = selectors.DefaultSelector() 
+
+MAX_NUM_CLIENTS = 2
+client_List = []
+registryList = []
+gameInstance = Jeopardy.Jeopardy()
+
+def listening_socket():
+    """Method for listening to incoming connections"""
+    listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listen_Socket.bind((host, port))
+    listen_Socket.listen()
+    listen_Socket.setblocking(False)
+    selector.register(listen_Socket, selectors.EVENT_READ, data=None)
+
+    print(' Server is listening on: ', (host, port))
+    logging.info(f" Server is listening on: {host}:{port}")
+
+def accept_connection(sock):
+    """Method for accepting incoming connections"""
+    connection, ipAddress = sock.accept()
+    server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    message = Message.Message(selector, connection, ipAddress, role='server', gameInstance=gameInstance)
+
+    connection.setblocking(False)
+    selector.register(connection, server_Events, data=message)
+    logging.info(f"Accepted connection from this client: {ipAddress}")
+
+    client_List.append(message)
+
+    logging.info(f"Client list: {repr(client_List)}")
+    print(f"Accepting connection from client: {ipAddress}")
+
+def handle_incoming_data(key, value=None):
+    """Method for handling incoming data"""
+    message = key.data
+    sock = key.fileobj
+
+    if value & selectors.EVENT_READ:
+        message.process_read_write(value)
+        message.responseSent = True
+
+    if value & selectors.EVENT_WRITE:
+        message.process_read_write(value)
+
+# Main method for the server
+argv = sys.argv[1:]
+try: 
+    opts, args = getopt.getopt(argv, "i:p:hn") 
+except (getopt.GetoptError, NameError): 
+    print("please use python server.py -h if unfamiliar with the protocol")
+    exit()
+for opt, arg in opts: 
+    if opt in ['-i']: host = arg
+    elif opt in ['-p']: port = int(arg)
+    elif opt in ['-h']:
+        print("Use python server.py -i <IP ADDRESS> -p <PORT NUMBER> to run the program")
+        exit()
+    elif opt in ['-n']:
+        print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
+        exit()
+
+listening_socket()
+
+try:
+    while True:
+        events = selector.select(timeout=None)
+        for key, value in events:
+            if key.data is None: accept_connection(key.fileobj)
+            else: handle_incoming_data(key, value)
+except Exception as e:
+    logging.info(f"main: error: exception for{key.data.addr}:\n{traceback.format_exc()}")
+    print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
+    key.fileobj.close()
+except KeyboardInterrupt:
+    logging.info("caught keyboard interrupt, exiting")
+    print("caught keyboard interrupt, exiting")
+finally: selector.close()

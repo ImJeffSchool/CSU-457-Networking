@@ -36,7 +36,6 @@ class Message:
         self.updateOrBlastSent = None
         self.YourTurnSent = None
         
-
     def create_message_server(self, response):
         """Sets content: response, and sets type & encoding"""
         return {

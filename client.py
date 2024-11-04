@@ -13,7 +13,6 @@ import getopt
 
 logging.basicConfig(filename='Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
-MAX_NUM_CLIENTS = 2
 
 def startConnection(host, port):
     "Starts and registers a socket with the server"

@@ -27,9 +27,9 @@ class Jeopardy:
             return
         listOfReadyPlayers = []
         for player in self.playerList:
-            listOfReadyPlayers.append(player.isReady)
+            if player.isReady: listOfReadyPlayers.append(player)
             
-        if all(listOfReadyPlayers) == True and len(listOfReadyPlayers) > 1:
+        if len(listOfReadyPlayers) == len(self.playerList):
             self.toggleLiveGame()
             
     def incrementRound(self):

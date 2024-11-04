@@ -253,14 +253,10 @@ def determineNextTurn(currentTurn):
         nextTurn = currentTurn+1
     return nextTurn
 
-
-
 def handling_Incoming_Data (key, value = None):
     """Method for handling incoming data"""
     message = key.data
     sock = key.fileobj
-    
-    
     
     if message.responseSent == True:
         value = 1
