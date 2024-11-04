@@ -42,8 +42,8 @@ class Message:
         $Content: The content to send.
         Finishes by populating the self._send_buffer w/ bytestring message
         """
-        if self.role == 'client': content_bytes = self._json_encode(self.request['content'], content_encoding)
-        if self.role == 'server': content_bytes = self._json_encode(self.response['content'], content_encoding)
+        if self.role == 'client': content_bytes = self._json_encode(self.request['content'], 'utf-8')
+        if self.role == 'server': content_bytes = self._json_encode(self.response['content'], 'utf-8')
         jsonheader = {
             "byteorder": sys.byteorder,
             "content-type": 'text/json',
