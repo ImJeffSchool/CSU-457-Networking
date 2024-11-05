@@ -32,7 +32,7 @@ class Message:
 
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
-            self.read()
+            return self.read()
         if value & selectors.EVENT_WRITE:
             self.write()
 
@@ -42,8 +42,8 @@ class Message:
         $Content: The content to send.
         Finishes by populating the self._send_buffer w/ bytestring message
         """
-        if self.role == 'client': content_bytes = self._json_encode(self.request['content'], 'utf-8')
-        if self.role == 'server': content_bytes = self._json_encode(self.response['content'], 'utf-8')
+        if self.role == 'client': content_bytes = self._json_encode(self.request['Content'], 'utf-8')
+        if self.role == 'server': content_bytes = self._json_encode(self.response['Content'], 'utf-8')
         jsonheader = {
             "byteorder": sys.byteorder,
             "content-type": 'text/json',
@@ -56,7 +56,12 @@ class Message:
         self._send_buffer += message
 
     def handle_server_logic(self):
-        print("Made it to handle_server_logic\n")
+        if self.request == None: return
+        #response = None
+        action = self.request["Action"]
+        value = self.request["Value"]
+        actionValue = action + "," + value
+        return actionValue
 
     def handle_client_logic(self):
         print("Made it to handle_client_logic\n")
@@ -73,20 +78,18 @@ class Message:
         else:
             raise RuntimeError("Peer closed.")
         
-        while True:
-            if self._jsonheader_len is None:
-                if not self.process_protoheader():
-                    break
-            if self._jsonheader_len is not None:
-                if self.jsonheader is None:
-                    if not self.process_jsonheader():
-                        break
-            if self.jsonheader:
-                if not self.process_message():
-                    break
-            
-            self._jsonheader_len = None
-            self.jsonheader = None
+        if self._jsonheader_len is None:
+            self.process_protoheader()
+        if self._jsonheader_len is not None:
+            if self.jsonheader is None:
+                self.process_jsonheader()
+        if self.jsonheader:
+            return self.process_message()
+             
+                
+        
+        self._jsonheader_len = None
+        self.jsonheader = None
 
     def write(self):
         """Sends the message to the socket. Use this to populate send_buffer and send to current client"""
@@ -115,12 +118,12 @@ class Message:
             
             if self.role == "server":
                 self.request = self._json_decode(data, encoding)
-                self.handle_server_logic()  
+                actionValue = self.handle_server_logic()
+                return actionValue
+            
             elif self.role == "client":
                 self.response = self._json_decode(data, encoding)
                 self.handle_client_logic()
-            return True
-        return False
     
     def process_protoheader(self):
         """Processes the protocol header to determine the length of the JSON header."""
@@ -128,8 +131,6 @@ class Message:
         if len(self._recv_buffer) >= hdrlen:
             self._jsonheader_len = struct.unpack(">H", self._recv_buffer[:hdrlen])[0]
             self._recv_buffer = self._recv_buffer[hdrlen:]
-            return True
-        return False
 
     def process_jsonheader(self):
         """Processes the JSON header by reading the necessary fields."""
@@ -137,8 +138,6 @@ class Message:
         if len(self._recv_buffer) >= hdrlen:
             self.jsonheader = self._json_decode(self._recv_buffer[:hdrlen], "utf-8")
             self._recv_buffer = self._recv_buffer[hdrlen:]
-            return True
-        return False
 
     def _json_encode(self, obj, encoding):
         return json.dumps(obj, ensure_ascii=False).encode(encoding)
@@ -157,6 +156,17 @@ class Message:
         else: raise ValueError(f"Invalid events mask mode {repr(mode)}.")
         self.selector.modify(self.sock, events, data=self)
 
+    def set_client_request(self, request):
+        self.request = request
+
+    def create_server_message(self, response):
+        """Sets content: response, and sets type & encoding"""
+        return {
+            "type": "text/json",
+            "encoding": "utf-8",
+            "content": response
+        }
+    
     def __repr__(self):
         return (f"Messaging Instance:\n"
                 f"Role: {self.role}\n"

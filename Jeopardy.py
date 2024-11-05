@@ -40,4 +40,3 @@ class Jeopardy:
     
     def getTurnPlayer(self):
         return self.turnPlayer
-

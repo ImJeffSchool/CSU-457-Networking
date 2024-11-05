@@ -108,8 +108,8 @@ class Message:
 
         if self.request:
             response = None
-            action = self.request["action"]
-            value = self.request.get("value", None)
+            action = self.request["Action"]
+            value = self.request.get("Value", None)
 
             # Specific player wants to ready up
             if action == 'Ready' and self.gameInstance:

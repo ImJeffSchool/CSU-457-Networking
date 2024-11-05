@@ -43,8 +43,8 @@ def create_request(action, value=None):
         "encoding": "utf-8"
     }
 
-    if action == "Ready": common_dict["content"] = {"action": action}
-    if value : common_dict["content"] = {"action": action, "value": value}
+    if action == "Ready": common_dict["Content"] = {"Action": action, "Value": value}
+    if value : common_dict["Content"] = {"Action": action, "Value": value}
 
     return common_dict
 
@@ -73,10 +73,13 @@ for opt, arg in opts:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
         
-action = input("When you are ready to start the game please type \"Ready\"")
-request = create_request(action)
-
 message = startConnection(host, port)
+
+action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space").split(", ")
+request = create_request(action, value)
+message.set_client_request(request)
+message.write()
+
 
 try:
     while True:
