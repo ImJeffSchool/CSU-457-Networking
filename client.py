@@ -83,6 +83,7 @@ try:
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
     logging.info('caught keyboard interrupt, exiting')
+    exit()
 
 try:
     while True:

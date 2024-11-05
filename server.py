@@ -54,10 +54,19 @@ def handle_incoming_data(key, value=None):
     message = key.data
     sock = key.fileobj
 
-    if value & selectors.EVENT_READ:
-        return message.process_read_write(value)
-    if value & selectors.EVENT_WRITE:
-        message.process_read_write(value)
+    try:
+        if value & selectors.EVENT_READ:
+            return message.process_read_write(value)
+        if value & selectors.EVENT_WRITE:
+            message.process_read_write(value)
+            
+        return
+    except RuntimeError as e:
+        logging.info(f"Caught a RuntimeError in handle_incoming_data: {e}")
+        print(f"Caught a RuntimeError in handle_incoming_data: {e}")
+        selector.unregister(sock)
+        sock.close()
+        exit()
 
 def processRequest(actionValue, message):
     if actionValue == None: 
