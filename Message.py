@@ -70,8 +70,11 @@ class Message:
         return actionValue
 
     def handle_client_logic(self):
-        print("Made it to handle_client_logic\n")
-
+        action = self.response["Action"]
+        value = self.response["Value"]
+        actionValue = action + ", " + value
+        return actionValue
+    
     def read(self):
         """Reads incoming data from the socket and processes headers and message."""
         try:
@@ -129,7 +132,8 @@ class Message:
                 return actionValue
             elif self.role == "client":
                 self.response = self._json_decode(data, encoding)
-                self.handle_client_logic()
+                actionValue = self.handle_client_logic()
+                return actionValue
     
     def process_protoheader(self):
         """Processes the protocol header to determine the length of the JSON header."""
@@ -177,7 +181,7 @@ class Message:
         return {
             "type": "text/json",
             "encoding": "utf-8",
-            "content": response
+            "Content": response
         }
 
     def __repr__(self):

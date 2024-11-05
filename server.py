@@ -35,19 +35,22 @@ def listening_socket():
 
 def accept_connection(sock):
     """Method for accepting incoming connections"""
-    connection, ipAddress = sock.accept()
+    sockOBJ, addrANDport = sock.accept()
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    message = Message.Message(selector, connection, ipAddress, role='server', gameInstance=gameInstance)
+    message = Message.Message(selector, sockOBJ, addrANDport, role='server', gameInstance=gameInstance)
 
-    connection.setblocking(True)
-    selector.register(connection, server_Events, data=message)
-    logging.info(f"Accepted connection from this client: {ipAddress}")
+    sockOBJ.setblocking(True)
+    selector.register(sockOBJ, server_Events, data=message)
+    logging.info(f"Accepted connection from this client: {addrANDport}")
 
     client_List.append(message)
-    gameInstance.playerList.append(message.addr)
+    currPlayer = Player.Player()
+    currPlayer.set_addrANDport(addrANDport)
+    currPlayer.set_sockOBJ(sockOBJ)
+    gameInstance.addPlayer(currPlayer)
 
     logging.info(f"Client list: {repr(client_List)}")
-    print(f"Accepting connection from client: {ipAddress}")
+    print(f"Accepting connection from client: {addrANDport}")
 
 def handle_incoming_data(key, value=None):
     """Method for handling incoming data"""
@@ -72,15 +75,15 @@ def processRequest(actionValue, message):
     if actionValue == None: 
         return
     
-    action, value = actionValue.split(",")
+    action, value = actionValue.split(", ")
 
     if action == "Ready":
         for player in gameInstance.playerList:
             if player.get_addrANDport() == message.addr:
-                player.setReady(True)
+                player.setReadyState(True)
                 player.setName(value)
             response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
-    actionValue = action + "," + value
+    #actionValue = action + "," + value
 
     message.response = message.create_server_message(response)
     message.create_message()

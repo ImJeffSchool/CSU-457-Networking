@@ -49,6 +49,20 @@ def create_request(action, value=None):
 
     return common_dict
 
+def process_response(actionValue, message):
+    if actionValue == None: 
+        return
+    
+    action, value = actionValue.split(", ")
+    
+    #################################
+    #process the response from server
+    #################################
+    if action == "Ready":
+        print(value, "Now waiting for other players...")
+        message.toggleReadWriteMode("r")
+    
+
 #########################
 #Parse Command line args
 #########################
@@ -91,7 +105,7 @@ try:
         for key, value in events:
             message = key.data
             try:
-                message.process_read_write(value)
+                process_response(message.process_read_write(value), message)
             except Exception as e:
                 pass
         if not sel.get_map():
