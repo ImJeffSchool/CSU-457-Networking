@@ -14,7 +14,7 @@ import time
 import random
 
 # Selector object to multiplex I/O operations & logging for file
-logging.basicConfig(filename='Server.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() 
 
 MAX_NUM_CLIENTS = 2
@@ -60,12 +60,14 @@ def handle_incoming_data(key, value=None):
         message.process_read_write(value)
 
 def processRequest(actionValue, message):
-    if actionValue == None: return
+    if actionValue == None: 
+        return
+    
     action, value = actionValue.split(",")
 
     if action == "Ready":
         for player in gameInstance.playerList:
-            if player.get_addrANDport() == message.addr: 
+            if player.get_addrANDport() == message.addr:
                 player.setReady(True)
                 player.setName(value)
             response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
@@ -112,4 +114,5 @@ except Exception as e:
 except KeyboardInterrupt:
     logging.info("caught keyboard interrupt, exiting")
     print("caught keyboard interrupt, exiting")
-finally: selector.close()
+finally: 
+    selector.close()

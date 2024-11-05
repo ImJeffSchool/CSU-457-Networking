@@ -21,14 +21,14 @@ class Message:
         self.selector = selector
         self.sock = sock
         self.addr = addr
-        self.role = role  # 'client' or 'server'
+        self.role = role
         self.request = None
         self.response = None
         self.jsonheader = None
         self._recv_buffer = b""
         self._send_buffer = b""
         self._jsonheader_len = None
-        self.gameInstance = gameInstance  # Relevant for server-side operations
+        self.gameInstance = gameInstance
 
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
@@ -42,8 +42,10 @@ class Message:
         $Content: The content to send.
         Finishes by populating the self._send_buffer w/ bytestring message
         """
-        if self.role == 'client': content_bytes = self._json_encode(self.request['Content'], 'utf-8')
-        if self.role == 'server': content_bytes = self._json_encode(self.response['Content'], 'utf-8')
+        if self.role == 'client': 
+            content_bytes = self._json_encode(self.request['Content'], 'utf-8')
+        if self.role == 'server': 
+            content_bytes = self._json_encode(self.response['Content'], 'utf-8')
         
         jsonheader = {
             "byteorder": sys.byteorder,
@@ -58,11 +60,13 @@ class Message:
         self._send_buffer += message
 
     def handle_server_logic(self):
-        if self.request == None: return
+        if self.request == None: 
+            return
+        
         #response = None
         action = self.request["Action"]
         value = self.request["Value"]
-        actionValue = action + "," + value
+        actionValue = action + ", " + value
         return actionValue
 
     def handle_client_logic(self):
@@ -93,8 +97,11 @@ class Message:
 
     def write(self):
         """Sends the message to the socket. Use this to populate send_buffer and send to current client"""
-        if self.role == 'server': self.handle_server_logic()
-        if self.role == 'client': self.create_message()
+        if self.role == 'server': 
+            self.handle_server_logic()
+        if self.role == 'client': 
+            self.create_message()
+        
         if self._send_buffer:
             print(f"Sending message to {self.addr}")
             try:
@@ -110,6 +117,7 @@ class Message:
     def process_message(self):
         """Processes the message by reading the JSON header and content. This method can be expanded to handle server-specific or client-specific logic."""
         content_len = self.jsonheader["content-length"]
+        
         if len(self._recv_buffer) >= content_len:
             data = self._recv_buffer[:content_len]
             self._recv_buffer = self._recv_buffer[content_len:]
@@ -126,6 +134,7 @@ class Message:
     def process_protoheader(self):
         """Processes the protocol header to determine the length of the JSON header."""
         hdrlen = 2
+        
         if len(self._recv_buffer) >= hdrlen:
             self._jsonheader_len = struct.unpack(">H", self._recv_buffer[:hdrlen])[0]
             self._recv_buffer = self._recv_buffer[hdrlen:]
@@ -133,6 +142,7 @@ class Message:
     def process_jsonheader(self):
         """Processes the JSON header by reading the necessary fields."""
         hdrlen = self._jsonheader_len
+        
         if len(self._recv_buffer) >= hdrlen:
             self.jsonheader = self._json_decode(self._recv_buffer[:hdrlen], "utf-8")
             self._recv_buffer = self._recv_buffer[hdrlen:]
@@ -148,10 +158,15 @@ class Message:
 
     def toggleReadWriteMode(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
-        if mode == "r": events = selectors.EVENT_READ
-        elif mode == "w": events = selectors.EVENT_WRITE
-        elif mode == "rw":  events = selectors.EVENT_READ | selectors.EVENT_WRITE
-        else: raise ValueError(f"Invalid events mask mode {repr(mode)}.")
+        if mode == "r": 
+            events = selectors.EVENT_READ
+        elif mode == "w": 
+            events = selectors.EVENT_WRITE
+        elif mode == "rw":  
+            events = selectors.EVENT_READ | selectors.EVENT_WRITE
+        else: 
+            raise ValueError(f"Invalid events mask mode {repr(mode)}.")
+        
         self.selector.modify(self.sock, events, data=self)
 
     def set_client_request(self, request):

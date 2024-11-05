@@ -11,7 +11,7 @@ import Message
 import time
 import getopt
 
-logging.basicConfig(filename='Client.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
 
 def startConnection(host, port):
@@ -75,7 +75,7 @@ for opt, arg in opts:
         exit()
 
 message = startConnection(host, port)
-action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space").split(", ")
+action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space ").split(", ")
 request = create_request(action, value)
 message.set_client_request(request)
 message.write()
