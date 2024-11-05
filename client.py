@@ -61,7 +61,10 @@ def process_response(actionValue, message):
     if action == "Ready":
         print(value, "Now waiting for other players...")
         message.toggleReadWriteMode("r")
-    
+    elif action == "Broadcast":
+        print(value)
+        message.toggleReadWriteMode("r")
+    #message.response = None
 
 #########################
 #Parse Command line args
@@ -97,13 +100,12 @@ try:
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
     logging.info('caught keyboard interrupt, exiting')
-    exit()
 
 try:
     while True:
         events = sel.select(timeout=None)
         for key, value in events:
-            message = key.data
+            #message = key.data
             try:
                 process_response(message.process_read_write(value), message)
             except Exception as e:

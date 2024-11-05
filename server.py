@@ -20,6 +20,7 @@ selector = selectors.DefaultSelector()
 MAX_NUM_CLIENTS = 2
 client_List = []
 registryList = []
+sockList = []
 gameInstance = Jeopardy.Jeopardy()
 
 def listening_socket():
@@ -40,6 +41,7 @@ def accept_connection(sock):
     message = Message.Message(selector, sockOBJ, addrANDport, role='server', gameInstance=gameInstance)
 
     sockOBJ.setblocking(True)
+    sockList.append(sockOBJ)
     selector.register(sockOBJ, server_Events, data=message)
     logging.info(f"Accepted connection from this client: {addrANDport}")
 
@@ -74,7 +76,7 @@ def handle_incoming_data(key, value=None):
 def processRequest(actionValue, message):
     if actionValue == None: 
         return
-    
+            
     action, value = actionValue.split(", ")
 
     if action == "Ready":
@@ -90,6 +92,32 @@ def processRequest(actionValue, message):
     message.toggleReadWriteMode('w')
     message.request = None
     message.write()
+    
+def broadcastMsg(msgContent):
+    "Send to all clients at once"
+    print("Into broadcastMsg")
+    
+    for client in gameInstance.playerList:
+        try:
+            addrANDport = client.get_addrANDport()
+            sockOBJ = client.get_sockOBJ()
+            sockList.append(sockOBJ)
+            serverBroadcastMsg = Message.Message(selector, sockOBJ, addrANDport, role='server', gameInstance=gameInstance)
+            print("Port, IP, client are: ", sockOBJ, addrANDport, client)
+            
+            response = {
+                "Action": "Broadcast",
+                "Value": msgContent
+            }
+            
+            serverBroadcastMsg.response = serverBroadcastMsg.create_server_message(response)
+            serverBroadcastMsg.create_message()
+            serverBroadcastMsg.toggleReadWriteMode('w')
+            serverBroadcastMsg.request = None
+            serverBroadcastMsg.write()
+
+        except Exception as e:
+            print("error is: ", e)
 
 # Main method for the server
 argv = sys.argv[1:]
@@ -117,8 +145,11 @@ try:
             if key.data is None: 
                 accept_connection(key.fileobj)
             # Need to figure out the correct elif to not call processRequest unless game data is in Message
-            elif len(gameInstance.playerList) == MAX_NUM_CLIENTS: 
+            elif len(gameInstance.playerList) == MAX_NUM_CLIENTS:     
                 processRequest(handle_incoming_data(key, value), key.data)
+                gameInstance.checkIfGameStart()
+                if gameInstance.liveGame == True:
+                    broadcastMsg("Game would start here")
 except Exception as e:
     logging.info(f"main: error: exception for{key.data.addr}:\n{traceback.format_exc()}")
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
