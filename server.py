@@ -56,14 +56,12 @@ def handle_incoming_data(key, value=None):
 
     if value & selectors.EVENT_READ:
         return message.process_read_write(value)
-
     if value & selectors.EVENT_WRITE:
         message.process_read_write(value)
 
 def processRequest(actionValue, message):
     if actionValue == None: return
     action, value = actionValue.split(",")
-
 
     if action == "Ready":
         for player in gameInstance.playerList:
@@ -77,7 +75,6 @@ def processRequest(actionValue, message):
     message.create_message()
     message.toggleReadWriteMode('w')
     message.request = None
-
     message.write()
 
 # Main method for the server

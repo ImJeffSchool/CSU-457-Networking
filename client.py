@@ -17,24 +17,25 @@ sel = selectors.DefaultSelector()
 def startConnection(host, port):
     "Starts and registers a socket with the server"
     serverAddress = (host, port)
-    
+
     print('Starting connection to ', serverAddress)
     logging.info('Starting connection to '.join((host, str(port))))
-    
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     errorNumber = sock.connect_ex(serverAddress)
-    
+
     if errorNumber == 0 or errorNumber == 115 :
         print("You successfully connected to the server!\n")
     else:
         errorLine = linecache.getline('./resources/TCPErrorNumbers.txt', errorNumber)
         print('Unable to connect. Error code: ' + errorLine)
         logging.info('Unable to connect. Error code: ' + errorLine)
+
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    
     message = Message.Message(sel, sock, serverAddress, role = 'client')
     sel.register(sock, events, data = message)
+
     return message
 
 def create_request(action, value=None):
@@ -72,14 +73,12 @@ for opt, arg in opts:
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
-        
-message = startConnection(host, port)
 
+message = startConnection(host, port)
 action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space").split(", ")
 request = create_request(action, value)
 message.set_client_request(request)
 message.write()
-
 
 try:
     while True:

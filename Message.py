@@ -44,12 +44,14 @@ class Message:
         """
         if self.role == 'client': content_bytes = self._json_encode(self.request['Content'], 'utf-8')
         if self.role == 'server': content_bytes = self._json_encode(self.response['Content'], 'utf-8')
+        
         jsonheader = {
             "byteorder": sys.byteorder,
             "content-type": 'text/json',
             "content-encoding": 'utf-8',
             "content-length": len(content_bytes),
         }
+        
         jsonheader_bytes = self._json_encode(jsonheader, 'utf-8')
         message_hdr = struct.pack(">H", len(jsonheader_bytes))
         message = message_hdr + jsonheader_bytes + content_bytes
@@ -85,9 +87,7 @@ class Message:
                 self.process_jsonheader()
         if self.jsonheader:
             return self.process_message()
-             
-                
-        
+
         self._jsonheader_len = None
         self.jsonheader = None
 
@@ -95,7 +95,6 @@ class Message:
         """Sends the message to the socket. Use this to populate send_buffer and send to current client"""
         if self.role == 'server': self.handle_server_logic()
         if self.role == 'client': self.create_message()
-
         if self._send_buffer:
             print(f"Sending message to {self.addr}")
             try:
@@ -120,7 +119,6 @@ class Message:
                 self.request = self._json_decode(data, encoding)
                 actionValue = self.handle_server_logic()
                 return actionValue
-            
             elif self.role == "client":
                 self.response = self._json_decode(data, encoding)
                 self.handle_client_logic()
@@ -166,7 +164,7 @@ class Message:
             "encoding": "utf-8",
             "content": response
         }
-    
+
     def __repr__(self):
         return (f"Messaging Instance:\n"
                 f"Role: {self.role}\n"

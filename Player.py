@@ -18,13 +18,13 @@ class Player:
 
     def set_addrANDport(self, addr):
         self.addrANDport = addr
-    
+
     def get_addrANDport(self):
         return self.addrANDport
-    
+
     def set_sockOBJ(self, sockobj):
         self.sockOBJ = sockobj
-    
+
     def get_sockOBJ(self):
         return self.sockOBJ
 
@@ -33,10 +33,10 @@ class Player:
 
     def getReadyState(self):
         return self.isReady
-    
+
     def getName(self):
         return self.name
-    
+
     def setName(self, name):
         self.name = name
 
