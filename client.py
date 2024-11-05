@@ -74,11 +74,15 @@ for opt, arg in opts:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
 
-message = startConnection(host, port)
-action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space ").split(", ")
-request = create_request(action, value)
-message.set_client_request(request)
-message.write()
+try:
+    message = startConnection(host, port)
+    action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space ").split(", ")
+    request = create_request(action, value)
+    message.set_client_request(request)
+    message.write()
+except KeyboardInterrupt:
+    print("caught keyboard interrupt, exiting")
+    logging.info('caught keyboard interrupt, exiting')
 
 try:
     while True:
