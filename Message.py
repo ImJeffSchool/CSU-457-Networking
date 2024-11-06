@@ -77,6 +77,7 @@ class Message:
     
     def read(self):
         """Reads incoming data from the socket and processes headers and message."""
+        actionValue = ""
         try:
             data = self.sock.recv(4096)
         except BlockingIOError:
@@ -87,16 +88,18 @@ class Message:
         else:
             raise RuntimeError("Peer closed.")
         
-        if self._jsonheader_len is None:
-            self.process_protoheader()
-        if self._jsonheader_len is not None:
-            if self.jsonheader is None:
-                self.process_jsonheader()
-        if self.jsonheader:
-            return self.process_message()
+        while self._recv_buffer:
+            if self._jsonheader_len is None:
+                self.process_protoheader()
+            if self._jsonheader_len is not None:
+                if self.jsonheader is None:
+                    self.process_jsonheader()
+            if self.jsonheader:
+                actionValue += self.process_message()
 
         self._jsonheader_len = None
         self.jsonheader = None
+        return actionValue
 
     def write(self):
         """Sends the message to the socket. Use this to populate send_buffer and send to current client"""
@@ -128,12 +131,11 @@ class Message:
             
             if self.role == "server":
                 self.request = self._json_decode(data, encoding)
-                actionValue = self.handle_server_logic()
-                return actionValue
+                return self.handle_server_logic()
             elif self.role == "client":
                 self.response = self._json_decode(data, encoding)
-                actionValue = self.handle_client_logic()
-                return actionValue
+                return self.handle_client_logic()
+                    
     
     def process_protoheader(self):
         """Processes the protocol header to determine the length of the JSON header."""
@@ -177,7 +179,7 @@ class Message:
         self.request = request
 
     def create_server_message(self, response):
-        """Sets content: response, and sets type & encoding"""
+        """Returns content: response, and sets type & encoding"""
         return {
             "type": "text/json",
             "encoding": "utf-8",
