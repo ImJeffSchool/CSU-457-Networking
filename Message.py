@@ -136,7 +136,6 @@ class Message:
                 self.response = self._json_decode(data, encoding)
                 return self.handle_client_logic()
                     
-    
     def process_protoheader(self):
         """Processes the protocol header to determine the length of the JSON header."""
         hdrlen = 2

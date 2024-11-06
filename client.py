@@ -64,6 +64,9 @@ def process_response(actionValue, message):
     elif action == "Broadcast":
         print(value)
         message.toggleReadWriteMode("r")
+    elif action == "Update":
+        print("Updateing gameInstance with: ", value)
+        message.toggleReadWriteMode('r')
     #message.response = None
 
 #########################

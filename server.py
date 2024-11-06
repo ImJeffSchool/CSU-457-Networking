@@ -12,6 +12,7 @@ import struct
 import getopt
 import time
 import random
+import json
 
 # Selector object to multiplex I/O operations & logging for file
 logging.basicConfig(filename='logs/Server.log', level=logging.INFO)
@@ -83,7 +84,7 @@ def processRequest(actionValue, message):
         for player in gameInstance.playerList:
             if player.get_addrANDport() == message.addr:
                 player.setReadyState(True)
-                player.setName(value)
+                player.set_name(value)
             response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
     #actionValue = action + "," + value
 
@@ -93,7 +94,7 @@ def processRequest(actionValue, message):
     message.request = None
     message.write()
     
-def broadcastMsg(msgContent):
+def broadcastMsg(msgContent, action):
     "Send to all clients at once"
     print("Into broadcastMsg")
     
@@ -106,7 +107,7 @@ def broadcastMsg(msgContent):
             print("Port, IP, client are: ", sockOBJ, addrANDport, client)
             
             response = {
-                "Action": "Broadcast",
+                "Action": action,
                 "Value": msgContent
             }
             
@@ -118,6 +119,33 @@ def broadcastMsg(msgContent):
 
         except Exception as e:
             print("error is: ", e)
+
+def gameStart():
+    """Handles the game logic once all players have readied up"""
+    if gameInstance.round == 0: 
+        print("Sending initial gamestate to all clients")
+        broadcastMsg(packGame(), "Update")
+    pass
+
+def packGame():
+    pList = []
+    for player in gameInstance.playerList:
+        pList.append(
+            {
+                "name": player.get_name(),
+                "points": player.get_points()
+            }
+        )
+
+    JSONplayerList = json.dumps(pList)
+    JSONQboard = json.dumps(gameInstance.questionsANDanswers.currentQuestionBoard)
+    
+    JSONgameInstance = {
+        "PlayerList": JSONplayerList,
+        "QuestionBoard": JSONQboard
+    }
+
+    return JSONgameInstance
 
 # Main method for the server
 argv = sys.argv[1:]
@@ -149,7 +177,8 @@ try:
                 processRequest(handle_incoming_data(key, value), key.data)
                 gameInstance.checkIfGameStart()
                 if gameInstance.liveGame == True:
-                    broadcastMsg("Game would start here")
+                    broadcastMsg("Game is about to start...", "Broadcast")
+                    gameStart()
 except Exception as e:
     logging.info(f"main: error: exception for{key.data.addr}:\n{traceback.format_exc()}")
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")

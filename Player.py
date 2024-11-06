@@ -34,10 +34,10 @@ class Player:
     def getReadyState(self):
         return self.isReady
 
-    def getName(self):
+    def get_name(self):
         return self.name
 
-    def setName(self, name):
+    def set_name(self, name):
         self.name = name
 
     def __repr__(self):
