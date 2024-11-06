@@ -53,20 +53,26 @@ def process_response(actionValue, message):
     if actionValue == None: 
         return
     
-    action, value = actionValue.split(", ")
+    alldata = actionValue.split(", ")
+
+    while alldata:
+        action = alldata[0]
+        value = alldata[1]
     
     #################################
     #process the response from server
     #################################
-    if action == "Ready":
-        print(value, "Now waiting for other players...")
-        message.toggleReadWriteMode("r")
-    elif action == "Broadcast":
-        print(value)
-        message.toggleReadWriteMode("r")
-    elif action == "Update":
-        print("Updateing gameInstance with: ", value)
-        message.toggleReadWriteMode('r')
+        if action == "Ready":
+            print(value, "Now waiting for other players...")
+            message.toggleReadWriteMode("r")
+        elif action == "Broadcast":
+            print(value)
+            message.toggleReadWriteMode("r")
+        elif action == "Update":
+            print("Updateing gameInstance with: ", value)
+            message.toggleReadWriteMode('r')
+
+        alldata = alldata[1:]
     #message.response = None
 
 #########################

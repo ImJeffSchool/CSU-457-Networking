@@ -72,7 +72,8 @@ class Message:
     def handle_client_logic(self):
         action = self.response["Action"]
         value = self.response["Value"]
-        actionValue = action + ", " + value
+        if type(value) == dict: actionValue = action + ", " + json.dumps(value)
+        else: actionValue = action + ", " + value
         return actionValue
     
     def read(self):
@@ -95,10 +96,13 @@ class Message:
                 if self.jsonheader is None:
                     self.process_jsonheader()
             if self.jsonheader:
-                actionValue += self.process_message()
+                if actionValue != "": 
+                    actionValue += ", "
+                    actionValue += self.process_message()
+                else: actionValue += self.process_message()
+                self._jsonheader_len = None
+                self.jsonheader = None
 
-        self._jsonheader_len = None
-        self.jsonheader = None
         return actionValue
 
     def write(self):
