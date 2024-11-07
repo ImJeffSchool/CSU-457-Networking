@@ -7,7 +7,7 @@ class Jeopardy:
         self.liveGame = False
         self.playerList = []
         self.questionsANDanswers = Question.Question()
-        self.round = 0
+        self.round = -1.0
         self.playerGuess = None
         self.currentPlayer = None
         self.playerTurn = 0        

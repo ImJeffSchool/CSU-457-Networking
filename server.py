@@ -91,17 +91,19 @@ def processRequest(actionValue, message):
         x, y = value.split(",")
         question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
         gameInstance.playerGuess = int(x), int(y)
-        gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
         response = {"Action": "SelectedQuestion", "Value": str(question)}   
     elif action == "PlayerAnswer":
         x = gameInstance.playerGuess[0]
         y = gameInstance.playerGuess[1]
         response = {"Action": "ValidateAnswer", "Value": ""} 
         if value == gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]:
+            gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
             gameInstance.playerList[gameInstance.currentPlayer-1].add_points(1000)
             response["Value"] = True
+            gameInstance.round += 1
         else:
             response["Value"] = False
+            gameInstance.round += 0.5
 
     message.response = message.create_server_message(response)
     message.create_message()
@@ -137,10 +139,23 @@ def broadcastMsg(msgContent, action):
 
 def LiveGame():
     """Handles the game logic once all players have readied up"""
+    if gameInstance.round == -1.0:
+        gameInstance.round = 0.0
+        
     if gameInstance.currentPlayer == None:
         gameInstance.currentPlayer = genInitialTurnPlayer()
+        
     if gameInstance.round % 1 == 0.5: 
-        print("Sending initial gamestate to all clients")
+        gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
+        theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn to steal."
+        gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
+        response = {"Action": "SelectedQuestion", "Value": str(gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]])} 
+        currentMessageObj = messageList[gameInstance.currentPlayer-1]
+        currentMessageObj.response = currentMessageObj.create_server_message(response)
+        currentMessageObj.create_message()
+        currentMessageObj.toggleReadWriteMode('w')
+        currentMessageObj.request = None
+        currentMessageObj.write()
         
     elif gameInstance.round % 1 == 0:
         broadcastMsg(packGame(), "Update")
@@ -153,7 +168,6 @@ def LiveGame():
         currentMessageObj.toggleReadWriteMode('w')
         currentMessageObj.request = None
         currentMessageObj.write()
-    gameInstance.incrementRound()
     return
 
 def packGame():
@@ -217,7 +231,7 @@ try:
                 processRequest(handle_incoming_data(key, value), key.data)
                 gameInstance.checkIfGameStart()
                 if gameInstance.liveGame == True:
-                    if gameInstance.round == 0: broadcastMsg("Game is about to start...", "Broadcast")
+                    if gameInstance.round == -1.0: broadcastMsg("Game is about to start...", "Broadcast")
                     LiveGame()
 except Exception as e:
     logging.info(f"main: error: exception for{key.data.addr}:\n{traceback.format_exc()}")
