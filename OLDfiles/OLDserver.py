@@ -4,10 +4,10 @@ import selectors
 import types
 import logging
 import traceback
-import Question
-import Player
-import Jeopardy
-import Message
+import OLDQuestion
+import OLDPlayer
+import OLDJeopardy
+import OLDMessage
 import struct
 import getopt
 import time

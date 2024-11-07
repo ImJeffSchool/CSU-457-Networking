@@ -120,28 +120,33 @@ def broadcastMsg(msgContent, action):
         except Exception as e:
             print("error is: ", e)
 
-def gameStart():
+def gameStart(message):
     """Handles the game logic once all players have readied up"""
     if gameInstance.round == 0: 
         print("Sending initial gamestate to all clients")
-        updateGameState()
+        broadcastMsg(packGame(), "Update")
     pass
 
-def createPlayerJson():
+def packGame():
     pList = []
     for player in gameInstance.playerList:
-        pList.append(
-            {
-                "name": player.get_name(),
-                "points": player.get_points()
-            }
-        )
-    return pList
-
-def updateGameState():
-    broadcastMsg(createPlayerJson(), "Update")
-    time.sleep(2)
-    broadcastMsg(createBoardJson(), "Update")
+        playerObj = {
+            "name" : player.get_name(),
+            "points" : player.get_points()
+        }
+        pList.append(playerObj)
+        
+    questionObj = {
+        "CurrentBoard": gameInstance.questionsANDanswers.currentQuestionBoard
+    }
+    
+    gameInstanceJson = {
+        "playerList": pList,
+        "QuestionBoard": questionObj
+    }
+    return gameInstanceJson
+    
+    
 
 def createBoardJson():
     JSONboard = {
@@ -180,7 +185,8 @@ try:
                 gameInstance.checkIfGameStart()
                 if gameInstance.liveGame == True:
                     broadcastMsg("Game is about to start...", "Broadcast")
-                    gameStart()
+                    #updateGameState()
+                    gameStart(key.data)
 except Exception as e:
     logging.info(f"main: error: exception for{key.data.addr}:\n{traceback.format_exc()}")
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")

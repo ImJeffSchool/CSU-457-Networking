@@ -10,9 +10,11 @@ import Player
 import Message
 import time
 import getopt
+import Jeopardy
 
 logging.basicConfig(filename='logs/Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
+gameInstance = Jeopardy.Jeopardy()
 
 def startConnection(host, port):
     "Starts and registers a socket with the server"
@@ -72,7 +74,9 @@ def process_response(actionValue, message):
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
-            print("Updating gameInstance with: ", value)
+            print("Player list is: ", message.response["Value"]["playerList"])
+            time.sleep(1)
+            print("QuestionBoard is ", message.response["Value"]["QuestionBoard"]["CurrentBoard"])
             message.toggleReadWriteMode('r')
 
         alldata = alldata[2:]
