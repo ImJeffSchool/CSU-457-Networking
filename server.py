@@ -87,7 +87,21 @@ def processRequest(actionValue, message):
                 player.setReadyState(True)
                 player.set_name(value)
             response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
-    #actionValue = action + "," + value
+    elif action == "PlayerSelection":
+        x, y = value.split(",")
+        question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
+        gameInstance.playerGuess = int(x), int(y)
+        gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
+        response = {"Action": "SelectedQuestion", "Value": str(question)}   
+    elif action == "PlayerAnswer":
+        x = gameInstance.playerGuess[0]
+        y = gameInstance.playerGuess[1]
+        response = {"Action": "ValidateAnswer", "Value": ""} 
+        if value == gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]:
+            gameInstance.playerList[gameInstance.currentPlayer-1].add_points(1000)
+            response["Value"] = True
+        else:
+            response["Value"] = False
 
     message.response = message.create_server_message(response)
     message.create_message()
@@ -203,8 +217,7 @@ try:
                 processRequest(handle_incoming_data(key, value), key.data)
                 gameInstance.checkIfGameStart()
                 if gameInstance.liveGame == True:
-                    broadcastMsg("Game is about to start...", "Broadcast")
-                    #updateGameState()
+                    if gameInstance.round == 0: broadcastMsg("Game is about to start...", "Broadcast")
                     LiveGame()
 except Exception as e:
     logging.info(f"main: error: exception for{key.data.addr}:\n{traceback.format_exc()}")

@@ -79,12 +79,24 @@ def process_response(actionValue, message):
             print("QuestionBoard is ", message.response["Value"]["QuestionBoard"]["CurrentBoard"])
             message.toggleReadWriteMode('r')
         elif action == "YourTurn":
-            print (message.response["Value"])
+            print(message.response["Value"])
             value = input()
             action = "PlayerSelection"
             request = create_request(action, value)
             message.set_client_request(request)
             message.write()
+        elif action == "SelectedQuestion":
+            print("Please answer this question: \n", message.response["Value"])
+            value = input()
+            action = "PlayerAnswer"
+            request = create_request(action, value)
+            message.set_client_request(request)
+            message.write()
+        elif action == "ValidateAnswer":
+            if (message.response["Value"]):
+                print("You got it right")
+            else:
+                print("The microchip in your head explodes")
 
         alldata = alldata[2:]
     #message.response = None
