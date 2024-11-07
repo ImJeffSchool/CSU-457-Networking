@@ -78,6 +78,13 @@ def process_response(actionValue, message):
             time.sleep(1)
             print("QuestionBoard is ", message.response["Value"]["QuestionBoard"]["CurrentBoard"])
             message.toggleReadWriteMode('r')
+        elif action == "YourTurn":
+            print (message.response["Value"])
+            value = input()
+            action = "PlayerSelection"
+            request = create_request(action, value)
+            message.set_client_request(request)
+            message.write()
 
         alldata = alldata[2:]
     #message.response = None

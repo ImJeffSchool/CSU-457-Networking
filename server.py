@@ -20,7 +20,7 @@ selector = selectors.DefaultSelector()
 
 MAX_NUM_CLIENTS = 2
 client_List = []
-registryList = []
+messageList = []
 sockList = []
 gameInstance = Jeopardy.Jeopardy()
 
@@ -40,6 +40,7 @@ def accept_connection(sock):
     sockOBJ, addrANDport = sock.accept()
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = Message.Message(selector, sockOBJ, addrANDport, role='server', gameInstance=gameInstance)
+    messageList.append(message)
 
     sockOBJ.setblocking(True)
     sockList.append(sockOBJ)
@@ -120,12 +121,26 @@ def broadcastMsg(msgContent, action):
         except Exception as e:
             print("error is: ", e)
 
-def gameStart(message):
+def LiveGame():
     """Handles the game logic once all players have readied up"""
-    if gameInstance.round == 0: 
+    if gameInstance.currentPlayer == None:
+        gameInstance.currentPlayer = genInitialTurnPlayer()
+    if gameInstance.round % 1 == 0.5: 
         print("Sending initial gamestate to all clients")
+        
+    elif gameInstance.round % 1 == 0:
         broadcastMsg(packGame(), "Update")
-    pass
+        theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
+        broadcastMsg(theBroadcastMsg, "Broadcast")
+        response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber, RowNumber>"}
+        currentMessageObj = messageList[gameInstance.currentPlayer-1]
+        currentMessageObj.response = currentMessageObj.create_server_message(response)
+        currentMessageObj.create_message()
+        currentMessageObj.toggleReadWriteMode('w')
+        currentMessageObj.request = None
+        currentMessageObj.write()
+    gameInstance.incrementRound()
+    return
 
 def packGame():
     pList = []
@@ -145,14 +160,18 @@ def packGame():
         "QuestionBoard": questionObj
     }
     return gameInstanceJson
-    
-    
 
-def createBoardJson():
-    JSONboard = {
-        "QuestionBoard": gameInstance.questionsANDanswers.currentQuestionBoard
-    }
-    return JSONboard
+def genInitialTurnPlayer():
+    randNum = random.randint(1,MAX_NUM_CLIENTS)
+    return randNum 
+
+def determineNextTurn(currentTurn):
+    nextTurn = 0
+    if currentTurn+1 > MAX_NUM_CLIENTS:
+        nextTurn = 1
+    else:
+        nextTurn = currentTurn+1
+    return nextTurn
 
 # Main method for the server
 argv = sys.argv[1:]
@@ -186,7 +205,7 @@ try:
                 if gameInstance.liveGame == True:
                     broadcastMsg("Game is about to start...", "Broadcast")
                     #updateGameState()
-                    gameStart(key.data)
+                    LiveGame()
 except Exception as e:
     logging.info(f"main: error: exception for{key.data.addr}:\n{traceback.format_exc()}")
     print(f"main: error: exception for {key.data.addr}:\n{traceback.format_exc()}")
