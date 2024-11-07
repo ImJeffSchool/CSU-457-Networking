@@ -124,10 +124,10 @@ def gameStart():
     """Handles the game logic once all players have readied up"""
     if gameInstance.round == 0: 
         print("Sending initial gamestate to all clients")
-        broadcastMsg(packGame(), "Update")
+        updateGameState()
     pass
 
-def packGame():
+def createPlayerJson():
     pList = []
     for player in gameInstance.playerList:
         pList.append(
@@ -136,16 +136,18 @@ def packGame():
                 "points": player.get_points()
             }
         )
+    return pList
 
-    JSONplayerList = json.dumps(pList)
-    JSONQboard = json.dumps(gameInstance.questionsANDanswers.currentQuestionBoard)
-    
-    JSONgameInstance = {
-        "PlayerList": JSONplayerList,
-        "QuestionBoard": JSONQboard
+def updateGameState():
+    broadcastMsg(createPlayerJson(), "Update")
+    time.sleep(2)
+    broadcastMsg(createBoardJson(), "Update")
+
+def createBoardJson():
+    JSONboard = {
+        "QuestionBoard": gameInstance.questionsANDanswers.currentQuestionBoard
     }
-
-    return JSONgameInstance
+    return JSONboard
 
 # Main method for the server
 argv = sys.argv[1:]

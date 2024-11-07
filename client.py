@@ -57,7 +57,10 @@ def process_response(actionValue, message):
 
     while alldata:
         action = alldata[0]
-        value = alldata[1]
+        if action == "Update":
+            value = alldata[1:]
+        else:
+            value = alldata[1]
     
     #################################
     #process the response from server
@@ -69,10 +72,10 @@ def process_response(actionValue, message):
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
-            print("Updateing gameInstance with: ", value)
+            print("Updating gameInstance with: ", value)
             message.toggleReadWriteMode('r')
 
-        alldata = alldata[1:]
+        alldata = alldata[2:]
     #message.response = None
 
 #########################
