@@ -48,7 +48,7 @@ def create_request(action, value=None):
 
     if action == "Ready": common_dict["Content"] = {"Action": action, "Value": value}
     if value : common_dict["Content"] = {"Action": action, "Value": value}
-
+    if action == "Quit": common_dict["Content"] = {"Action": action, "Value": value}
     return common_dict
 
 def process_response(actionValue, message):
@@ -81,15 +81,21 @@ def process_response(actionValue, message):
         elif action == "YourTurn":
             print(message.response["Value"])
             value = input()
-            action = "PlayerSelection"
-            request = create_request(action, value)
+            if value == "Quit":
+                request = create_request(action=value, value="")
+            else:
+                action = "PlayerSelection"
+                request = create_request(action, value)
             message.set_client_request(request)
             message.write()
         elif action == "SelectedQuestion":
             print("Please answer this question: \n", message.response["Value"])
             value = input()
-            action = "PlayerAnswer"
-            request = create_request(action, value)
+            if value == "Quit":
+                request = create_request(value)
+            else:
+                action = "PlayerAnswer"
+                request = create_request(action=value, value=None)
             message.set_client_request(request)
             message.write()
         elif action == "ValidateAnswer":

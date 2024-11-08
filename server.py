@@ -104,7 +104,17 @@ def processRequest(actionValue, message):
         else:
             response["Value"] = False
             gameInstance.round += 0.5
-
+    elif action == "Quit":
+        stringMsg = "Player" + str(gameInstance.currentPlayer) + " has quit the game"
+        broadcastMsg(stringMsg, "Broadcast")
+        currSock = gameInstance.playerList[gameInstance.currentPlayer-1].get_sockOBJ()
+        selector.unregister(currSock)
+        currSock.close()
+        gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
+        if len(gameInstance.playerList) <= 1:
+            broadcastMsg("There are fewer than the required amount of players to run the game. Now exiting...", "Broadcast")
+            exit()
+        
     message.response = message.create_server_message(response)
     message.create_message()
     message.toggleReadWriteMode('w')
