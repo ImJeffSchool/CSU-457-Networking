@@ -7,10 +7,10 @@ class Jeopardy:
         self.liveGame = False
         self.playerList = []
         self.questionsANDanswers = Question.Question()
-        self.round = -1.0
+        self.round = 0
         self.playerGuess = None
-        self.currentPlayer = None
-        self.playerTurn = 0        
+        self.currentPlayer = Player.Player("Player0")
+        self.turnPlayer = 0
 
     def toggleLiveGame(self):
         if self.liveGame == False: self.liveGame = True
@@ -40,3 +40,4 @@ class Jeopardy:
     
     def getTurnPlayer(self):
         return self.turnPlayer
+

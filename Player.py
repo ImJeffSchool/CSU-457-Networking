@@ -1,55 +1,46 @@
 class Player:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        self.name = None
         self.points = 0
-        self.request_queued = False
-        self.request = None
-        self.response = None
         self.isReady = False
-        self.address = None
-        self.port = None
+        self.addrANDport = None
+        self.sockOBJ = None
         self.hasTakenTurn = False
 
-    def _addPoints(self, points):
+    def add_points(self, points):
         self.points += points
 
-    def _subPoints(self, points): 
+    def sub_points(self, points): 
         self.points -= points
-        
-    def setAddress(self, addr):
-        self.address = addr
-    
-    def getAddress(self):
-        return self.address
-    
-    def setPort(self, prt):
-        self.port = prt
-    
-    def getPort(self):
-        return self.port
 
-    # def askQuestion(self, questionVal):
-        # need to fill out for json
+    def get_points(self):
+        return self.points
+
+    def set_addrANDport(self, addr):
+        self.addrANDport = addr
+
+    def get_addrANDport(self):
+        return self.addrANDport
+
+    def set_sockOBJ(self, sockobj):
+        self.sockOBJ = sockobj
+
+    def get_sockOBJ(self):
+        return self.sockOBJ
 
     def setReadyState(self, state):
         self.isReady = state
 
     def getReadyState(self):
         return self.isReady
-    # def answerQuestion(self, answer):
-        # need to fill out for json
-    def getName(self):
-        return self.name
-    
-    def setName(self, name):
-        self.name = name
 
-    def getPoints(self):
-        return self.points
-    
+    def get_name(self):
+        return self.name
+
+    def set_name(self, name):
+        self.name = name
 
     def __repr__(self):
         return (f"Player: {self.name}\n"
               f"Points: {self.points}\n"
               f"isReady: {self.isReady}\n")
-        

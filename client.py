@@ -10,20 +10,35 @@ import Player
 import Message
 import time
 import getopt
+import Jeopardy
 
-# TCP Client code for the project
-#Static_HOST = '127.0.0.1'
-#Static_PORT = 54322
-
-logging.basicConfig(filename='Client.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Client.log', level=logging.INFO)
 sel = selectors.DefaultSelector()
+gameInstance = Jeopardy.Jeopardy()
 
-def handling_Incoming_Data(key, value = None) :
-    message = key.data
-    if value & selectors.EVENT_READ:
-        message.processReadWrite(value)
-    if value & selectors.EVENT_WRITE:
-        message.processReadWrite(value)
+def startConnection(host, port):
+    "Starts and registers a socket with the server"
+    serverAddress = (host, port)
+
+    print('Starting connection to ', serverAddress)
+    logging.info('Starting connection to '.join((host, str(port))))
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setblocking(False)
+    errorNumber = sock.connect_ex(serverAddress)
+
+    if errorNumber == 0 or errorNumber == 115 :
+        print("You successfully connected to the server!\n")
+    else:
+        errorLine = linecache.getline('./resources/TCPErrorNumbers.txt', errorNumber)
+        print('Unable to connect. Error code: ' + errorLine)
+        logging.info('Unable to connect. Error code: ' + errorLine)
+
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    message = Message.Message(sel, sock, serverAddress, role = 'client')
+    sel.register(sock, events, data = message)
+
+    return message
 
 def create_request(action, value=None):
     common_dict = {
@@ -31,33 +46,64 @@ def create_request(action, value=None):
         "encoding": "utf-8"
     }
 
-    if action == "Ready": common_dict["content"] = {"action": action}
-    if value : common_dict["content"] = {"action": action, "value": value}
+    if action == "Ready": common_dict["Content"] = {"Action": action, "Value": value}
+    if value : common_dict["Content"] = {"Action": action, "Value": value}
 
     return common_dict
 
-def startConnection(host, port):
-    serverAddress = (host, port)
+def process_response(actionValue, message):
+    if actionValue == None: 
+        return
     
-    print('Starting connection to ', serverAddress)
-    logging.info('Starting connection to '.join((host, str(port))))
-    
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setblocking(False)
-    errorNumber = sock.connect_ex(serverAddress)
-    
-    if errorNumber == 0 or errorNumber == 115 :
-        print("You successfully connected to the server!\n")
-    else:
-        errorLine = linecache.getline('./resources/TCPErrorNumbers.txt', errorNumber)
-        print('Unable to connect. Error code: ' + errorLine)
-        logging.info('Unable to connect. Error code: ' + errorLine)
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    
-    message = Message.Message(sel, sock, serverAddress, role = 'client')
-    sel.register(sock, events, data = message)
-    return message
+    alldata = actionValue.split(", ")
 
+    while alldata:
+        action = alldata[0]
+        if action == "Update":
+            value = alldata[1:]
+        else:
+            value = alldata[1]
+    
+    #################################
+    #process the response from server
+    #################################
+        if action == "Ready":
+            print(value, "Now waiting for other players...")
+            message.toggleReadWriteMode("r")
+        elif action == "Broadcast":
+            print(value)
+            message.toggleReadWriteMode("r")
+        elif action == "Update":
+            print("Player list is: ", message.response["Value"]["playerList"])
+            time.sleep(1)
+            print("QuestionBoard is ", message.response["Value"]["QuestionBoard"]["CurrentBoard"])
+            message.toggleReadWriteMode('r')
+        elif action == "YourTurn":
+            print(message.response["Value"])
+            value = input()
+            action = "PlayerSelection"
+            request = create_request(action, value)
+            message.set_client_request(request)
+            message.write()
+        elif action == "SelectedQuestion":
+            print("Please answer this question: \n", message.response["Value"])
+            value = input()
+            action = "PlayerAnswer"
+            request = create_request(action, value)
+            message.set_client_request(request)
+            message.write()
+        elif action == "ValidateAnswer":
+            if (message.response["Value"]):
+                print("You got it right")
+            else:
+                print("The microchip in your head explodes")
+
+        alldata = alldata[2:]
+    #message.response = None
+
+#########################
+#Parse Command line args
+#########################
 argv = sys.argv[1:]
 try: 
     opts, args = getopt.getopt(argv, "i:p:hn") 
@@ -80,35 +126,25 @@ for opt, arg in opts:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
 
-action = input("Please ready up with \"Ready\" or choose one of the options listed: ")
-request = create_request(action)
-
-message = startConnection(host, port)
-message.set_client_request(request)
+try:
+    message = startConnection(host, port)
+    action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space ").split(", ")
+    request = create_request(action, value)
+    message.set_client_request(request)
+    message.write()
+except KeyboardInterrupt:
+    print("caught keyboard interrupt, exiting")
+    logging.info('caught keyboard interrupt, exiting')
 
 try:
     while True:
-        events = sel.select(timeout=1)  
+        events = sel.select(timeout=None)
         for key, value in events:
-            message = key.data
+            #message = key.data
             try:
-                # if not message.request:
-                #     action = input("Please enter another command, or when you are ready, enter ready: ")
-                #     request = create_request(action)
-                #     message.set_client_request(request)
-                
-                message.process_read_write(value)
-                #handling_Incoming_Data(key, value)
+                process_response(message.process_read_write(value), message)
             except Exception as e:
-                time.sleep(1)
-                #print(f"Exception: {e} was caught!\n")
-           #     print(
-            #        "main: error: exception for",
-             #       f"{message.addr}:\n{traceback.format_exc()}",
-             #   )
-            #    logging.info('main: error: exception for'.join(message.addr, str(traceback.format_exc())))
-                #message.close()
-        # Check for a socket being monitored to continue.
+                pass
         if not sel.get_map():
             break
 except KeyboardInterrupt:
