@@ -92,17 +92,17 @@ def process_response(actionValue, message):
             print("Please answer this question: \n", message.response["Value"])
             value = input()
             if value == "Quit":
-                request = create_request(value)
+                request = create_request(action=value, value="")
             else:
                 action = "PlayerAnswer"
-                request = create_request(action=value, value=None)
+                request = create_request(action, value)
             message.set_client_request(request)
             message.write()
         elif action == "ValidateAnswer":
             if (message.response["Value"]):
                 print("You got it right")
             else:
-                print("The microchip in your head explodes")
+                print("You got it wrong!")
 
         alldata = alldata[2:]
     #message.response = None
