@@ -71,9 +71,13 @@ def handle_incoming_data(key, value=None):
     except RuntimeError as e:
         logging.info(f"Caught a RuntimeError in handle_incoming_data: {e}")
         print(f"Caught a RuntimeError in handle_incoming_data: {e}")
+        broadcastMsg("Player has disconnected unexpectedly", "Broadcast")
         selector.unregister(sock)
         sock.close()
-        exit()
+        print("Current player is ", gameInstance.currentPlayer)
+        gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
+        checkInsufficientPlayers()
+        #exit()
 
 def processRequest(actionValue, message):
     if actionValue == None: 
@@ -111,9 +115,7 @@ def processRequest(actionValue, message):
         selector.unregister(currSock)
         currSock.close()
         gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
-        if len(gameInstance.playerList) <= 1:
-            broadcastMsg("There are fewer than the required amount of players to run the game. Now exiting...", "Broadcast")
-            exit()
+        checkInsufficientPlayers()
         
     message.response = message.create_server_message(response)
     message.create_message()
@@ -146,6 +148,11 @@ def broadcastMsg(msgContent, action):
 
         except Exception as e:
             print("error is: ", e)
+            
+def checkInsufficientPlayers():
+    if len(gameInstance.playerList) <= 1:
+            broadcastMsg("There are fewer than the required amount of players to run the game. Now exiting...", "Broadcast")
+            exit()
 
 def LiveGame():
     """Handles the game logic once all players have readied up"""
