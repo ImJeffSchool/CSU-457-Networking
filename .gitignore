@@ -1,8 +1,5 @@
 # Ignore logs folder
-logs/Client.log
-logs/Messages.log
-logs/Server.log
-
+**/*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
