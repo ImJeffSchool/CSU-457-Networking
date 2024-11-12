@@ -100,7 +100,7 @@ def processRequest(actionValue, message):
         x = gameInstance.playerGuess[0]
         y = gameInstance.playerGuess[1]
         response = {"Action": "ValidateAnswer", "Value": ""} 
-        if value == gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]:
+        if value.lower() == (gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]).lower():
             gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
             gameInstance.playerList[gameInstance.currentPlayer-1].add_points(1000)
             response["Value"] = True
