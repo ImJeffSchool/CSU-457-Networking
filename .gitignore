@@ -1,5 +1,5 @@
 # Ignore logs folder
-**/logs/
+**/logs/*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
