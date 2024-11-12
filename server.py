@@ -60,22 +60,22 @@ def handle_incoming_data(key, value=None):
     """Method for handling incoming data"""
     message = key.data
     sock = key.fileobj
-
+        
     try:
         if value & selectors.EVENT_READ:
             return message.process_read_write(value)
         if value & selectors.EVENT_WRITE:
             message.process_read_write(value)
-            
         return
     except RuntimeError as e:
         logging.info(f"Caught a RuntimeError in handle_incoming_data: {e}")
-        print(f"Caught a RuntimeError in handle_incoming_data: {e}")
+        #print(f"Caught a RuntimeError in handle_incoming_data: {e}")
         broadcastMsg("Player has disconnected unexpectedly", "Broadcast")
         selector.unregister(sock)
         sock.close()
-        print("Current player is ", gameInstance.currentPlayer)
-        gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
+        if gameInstance.currentPlayer != None:
+            print("Current player is ", gameInstance.currentPlayer)
+            gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
         checkInsufficientPlayers()
         #exit()
 

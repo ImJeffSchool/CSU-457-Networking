@@ -90,6 +90,7 @@ class Message:
             self._recv_buffer += data
         else:
             raise RuntimeError("Peer closed.")
+            
         
         while self._recv_buffer:
             if self._jsonheader_len is None:
