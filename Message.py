@@ -7,7 +7,7 @@ import logging
 import time
 import Jeopardy
 
-logging.basicConfig(filename='logs/Message.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Message.log', filemode='w',level=logging.INFO)
 
 class Message:
     def __init__(self, selector, sock, addr, role='server', gameInstance=None):
