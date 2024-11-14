@@ -15,9 +15,10 @@ import random
 import json
 
 # Selector object to multiplex I/O operations & logging for file
-logging.basicConfig(filename='logs/Server.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Server.log', filemode='w', level=logging.INFO)
 selector = selectors.DefaultSelector() 
 
+host = '0.0.0.0'
 MAX_NUM_CLIENTS = 2
 client_List = []
 messageList = []
@@ -60,20 +61,28 @@ def handle_incoming_data(key, value=None):
     """Method for handling incoming data"""
     message = key.data
     sock = key.fileobj
-
+        
     try:
         if value & selectors.EVENT_READ:
             return message.process_read_write(value)
         if value & selectors.EVENT_WRITE:
             message.process_read_write(value)
-            
         return
     except RuntimeError as e:
         logging.info(f"Caught a RuntimeError in handle_incoming_data: {e}")
-        print(f"Caught a RuntimeError in handle_incoming_data: {e}")
+        #print(f"Caught a RuntimeError in handle_incoming_data: {e}")
         selector.unregister(sock)
         sock.close()
-        exit()
+        i = 1
+        for player in gameInstance.playerList:
+            if player.get_addrANDport() == message.addr:
+                gameInstance.playerList.remove(player)
+                stringMsg = "Player" + str(i) + " has disconnected unexpectedly"
+                broadcastMsg(stringMsg, "Broadcast")
+            i +=1
+        
+        checkInsufficientPlayers()
+        #exit()
 
 def processRequest(actionValue, message):
     if actionValue == None: 
@@ -96,7 +105,7 @@ def processRequest(actionValue, message):
         x = gameInstance.playerGuess[0]
         y = gameInstance.playerGuess[1]
         response = {"Action": "ValidateAnswer", "Value": ""} 
-        if value == gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]:
+        if value.lower() == (gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]).lower():
             gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
             gameInstance.playerList[gameInstance.currentPlayer-1].add_points(1000)
             response["Value"] = True
@@ -111,9 +120,7 @@ def processRequest(actionValue, message):
         selector.unregister(currSock)
         currSock.close()
         gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
-        if len(gameInstance.playerList) <= 1:
-            broadcastMsg("There are fewer than the required amount of players to run the game. Now exiting...", "Broadcast")
-            exit()
+        checkInsufficientPlayers()
         
     message.response = message.create_server_message(response)
     message.create_message()
@@ -146,6 +153,11 @@ def broadcastMsg(msgContent, action):
 
         except Exception as e:
             print("error is: ", e)
+            
+def checkInsufficientPlayers():
+    if len(gameInstance.playerList) <= 1:
+            broadcastMsg("There are fewer than the required amount of players to run the game. Now exiting...", "Broadcast")
+            exit()
 
 def LiveGame():
     """Handles the game logic once all players have readied up"""
@@ -214,15 +226,15 @@ def determineNextTurn(currentTurn):
 # Main method for the server
 argv = sys.argv[1:]
 try: 
-    opts, args = getopt.getopt(argv, "i:p:hn") 
+    opts, args = getopt.getopt(argv, "p:hn") 
 except (getopt.GetoptError, NameError): 
     print("please use python server.py -h if unfamiliar with the protocol")
     exit()
 for opt, arg in opts: 
-    if opt in ['-i']: host = arg
-    elif opt in ['-p']: port = int(arg)
+    if opt in ['-p']: 
+        port = int(arg)
     elif opt in ['-h']:
-        print("Use python server.py -i <IP ADDRESS> -p <PORT NUMBER> to run the program")
+        print("Use python server.py -p <PORT NUMBER> to run the program")
         exit()
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")

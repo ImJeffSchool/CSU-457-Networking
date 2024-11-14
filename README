@@ -4,7 +4,7 @@ This is a simple Game show example implemented using Python and sockets.
 
 # How to play:
 1. **Start the server:** Run the `server.py` script. Starts a pre-game lobby, and awaits 2 players to connect and ready up. Please ensure that both players are connected before readying-up. An Example of this would look like:
-"python server.py -i 0.0.0.0 -p 54321" - Where -i is the server IP address, and -p is the specified port number.
+"python server.py -p 54321" - Where -p is the specified port number.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals. Once a player connects, they may adjust game settings and ready up. An example of this would look like:
 "python client.py -i 123.45.67.89 -p 54321" - Where -i is the client's IP address and -p is the port number connecting to the server. Ensure that when connecting both clients have different IP addresses.
 3. **Play the game:** Jeopardy style game where players, in a round-robin fashion. One Player will select a question from the board and given the chance to answer the question, If the first player doesn't answer the question correctly, it then goes over to the next player where they now have the chance to answer the question for points. Players take turns answering their selected questions, being awarded respective points. The game will continue to play until all questions are answered on the board. 

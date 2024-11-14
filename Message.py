@@ -7,7 +7,7 @@ import logging
 import time
 import Jeopardy
 
-logging.basicConfig(filename='logs/Message.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Message.log', filemode='w',level=logging.INFO)
 
 class Message:
     def __init__(self, selector, sock, addr, role='server', gameInstance=None):
@@ -90,6 +90,7 @@ class Message:
             self._recv_buffer += data
         else:
             raise RuntimeError("Peer closed.")
+            
         
         while self._recv_buffer:
             if self._jsonheader_len is None:
