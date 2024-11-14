@@ -18,6 +18,7 @@ import json
 logging.basicConfig(filename='logs/Server.log', level=logging.INFO)
 selector = selectors.DefaultSelector() 
 
+host = '0.0.0.0'
 MAX_NUM_CLIENTS = 2
 client_List = []
 messageList = []
@@ -221,7 +222,7 @@ def determineNextTurn(currentTurn):
 # Main method for the server
 argv = sys.argv[1:]
 try: 
-    opts, args = getopt.getopt(argv, "i:p:hn") 
+    opts, args = getopt.getopt(argv, "p:hn") 
 except (getopt.GetoptError, NameError): 
     print("please use python server.py -h if unfamiliar with the protocol")
     exit()
@@ -235,8 +236,6 @@ for opt, arg in opts:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
 
-
-host = '0.0.0.0'
 listening_socket()
 
 try:
