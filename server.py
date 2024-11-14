@@ -71,12 +71,16 @@ def handle_incoming_data(key, value=None):
     except RuntimeError as e:
         logging.info(f"Caught a RuntimeError in handle_incoming_data: {e}")
         #print(f"Caught a RuntimeError in handle_incoming_data: {e}")
-        broadcastMsg("Player has disconnected unexpectedly", "Broadcast")
         selector.unregister(sock)
         sock.close()
-        if gameInstance.currentPlayer != None:
-            print("Current player is ", gameInstance.currentPlayer)
-            gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
+        i = 1
+        for player in gameInstance.playerList:
+            if player.get_addrANDport() == message.addr:
+                gameInstance.playerList.remove(player)
+                stringMsg = "Player" + str(i) + " has disconnected unexpectedly"
+                broadcastMsg(stringMsg, "Broadcast")
+            i +=1
+        
         checkInsufficientPlayers()
         #exit()
 
