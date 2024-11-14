@@ -226,15 +226,17 @@ except (getopt.GetoptError, NameError):
     print("please use python server.py -h if unfamiliar with the protocol")
     exit()
 for opt, arg in opts: 
-    if opt in ['-i']: host = arg
-    elif opt in ['-p']: port = int(arg)
+    if opt in ['-p']: 
+        port = int(arg)
     elif opt in ['-h']:
-        print("Use python server.py -i <IP ADDRESS> -p <PORT NUMBER> to run the program")
+        print("Use python server.py -p <PORT NUMBER> to run the program")
         exit()
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
 
+
+host = '0.0.0.0'
 listening_socket()
 
 try:
