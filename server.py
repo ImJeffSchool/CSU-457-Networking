@@ -15,7 +15,7 @@ import random
 import json
 
 # Selector object to multiplex I/O operations & logging for file
-logging.basicConfig(filename='logs/Server.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Server.log', filemode='w', level=logging.INFO)
 selector = selectors.DefaultSelector() 
 
 host = '0.0.0.0'

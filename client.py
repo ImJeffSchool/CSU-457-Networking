@@ -12,7 +12,7 @@ import time
 import getopt
 import Jeopardy
 
-logging.basicConfig(filename='logs/Client.log', level=logging.INFO)
+logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO)
 sel = selectors.DefaultSelector()
 gameInstance = Jeopardy.Jeopardy()
 
