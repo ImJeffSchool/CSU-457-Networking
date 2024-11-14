@@ -161,4 +161,4 @@ cython_debug/
 
 logs/Client.log
 logs/Server.log
-logs/Server.log
+logs/Message.log
