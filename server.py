@@ -98,9 +98,13 @@ def processRequest(actionValue, message):
             response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
     elif action == "PlayerSelection":
         x, y = value.split(",")
-        question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
-        gameInstance.playerGuess = int(x), int(y)
-        response = {"Action": "SelectedQuestion", "Value": str(question)}   
+        question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)-1][int(y)-1]
+        gameInstance.playerGuess = int(x)-1, int(y)-1
+        if question == "EMPTY":
+            response = {"Action": "YourTurn", "Value": "Chosen question has already been answered. Please choose a different question! (Enter like <ColNumber, RowNumber>)"}
+        else:
+            response = {"Action": "SelectedQuestion", "Value": str(question)}
+            messageList[gameInstance.currentPlayer-1].dontSendYourTurn = True
     elif action == "PlayerAnswer":
         x = gameInstance.playerGuess[0]
         y = gameInstance.playerGuess[1]
@@ -109,10 +113,12 @@ def processRequest(actionValue, message):
             gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
             gameInstance.playerList[gameInstance.currentPlayer-1].add_points(1000)
             response["Value"] = True
-            gameInstance.round += 1
+            gameInstance.round += 0.5
+            messageList[gameInstance.currentPlayer-1].dontSendYourTurn = False
         else:
             response["Value"] = False
             gameInstance.round += 0.5
+            messageList[gameInstance.currentPlayer-1].dontSendYourTurn = False
     elif action == "Quit":
         stringMsg = "Player" + str(gameInstance.currentPlayer) + " has quit the game"
         broadcastMsg(stringMsg, "Broadcast")
@@ -169,27 +175,32 @@ def LiveGame():
         
     if gameInstance.round % 1 == 0.5: 
         gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
-        theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn to steal."
-        gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
-        response = {"Action": "SelectedQuestion", "Value": str(gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]])} 
+        theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
+        broadcastMsg(theBroadcastMsg, "Broadcast")
         currentMessageObj = messageList[gameInstance.currentPlayer-1]
-        currentMessageObj.response = currentMessageObj.create_server_message(response)
-        currentMessageObj.create_message()
-        currentMessageObj.toggleReadWriteMode('w')
-        currentMessageObj.request = None
-        currentMessageObj.write()
         
+        if currentMessageObj.dontSendYourTurn == False:
+            #gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
+            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber, RowNumber>) mod = 0.5"}
+            currentMessageObj.response = currentMessageObj.create_server_message(response)
+            currentMessageObj.create_message()
+            currentMessageObj.toggleReadWriteMode('w')
+            currentMessageObj.request = None
+            currentMessageObj.write()
+                
     elif gameInstance.round % 1 == 0:
         broadcastMsg(packGame(), "Update")
         theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
         broadcastMsg(theBroadcastMsg, "Broadcast")
-        response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber, RowNumber>"}
         currentMessageObj = messageList[gameInstance.currentPlayer-1]
-        currentMessageObj.response = currentMessageObj.create_server_message(response)
-        currentMessageObj.create_message()
-        currentMessageObj.toggleReadWriteMode('w')
-        currentMessageObj.request = None
-        currentMessageObj.write()
+        
+        if currentMessageObj.dontSendYourTurn == False:
+            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber, RowNumber>) mod = 0"}
+            currentMessageObj.response = currentMessageObj.create_server_message(response)
+            currentMessageObj.create_message()
+            currentMessageObj.toggleReadWriteMode('w')
+            currentMessageObj.request = None
+            currentMessageObj.write()
     return
 
 def packGame():
