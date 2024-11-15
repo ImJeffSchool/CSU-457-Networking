@@ -33,6 +33,14 @@ class Question:
                             [" Neil Armstrong", "Russia", "Poseidon", "Carbon dioxide", "Mount Everest"],
         ]
         
+        self.aValues = [
+            [100, 100, 100, 100, 100],
+            [200, 200, 200, 200, 200],
+            [400, 400, 400, 400, 400],
+            [800, 800, 800, 800, 800],
+            [1600, 1600, 1600, 1600, 1600]
+        ]
+        
         self.currentQuestionBoard = []
         self.chooseRandomQuestionBank()
         

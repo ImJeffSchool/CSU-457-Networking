@@ -30,6 +30,7 @@ class Message:
         self._jsonheader_len = None
         self.gameInstance = gameInstance
         self.dontSendYourTurn = False
+        self.notDetermineNext = False
 
     def process_read_write(self, value = None):
         if value & selectors.EVENT_READ:
