@@ -15,13 +15,6 @@ import Jeopardy
 logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO)
 sel = selectors.DefaultSelector()
 gameInstance = Jeopardy.Jeopardy()
-validSelections = [
-                    "1,1", "1,2", "1,3", "1,4", "1,5",
-                    "2,1", "2,2", "2,3", "2,4", "2,5",
-                    "3,1", "3,2", "3,3", "3,4", "3,5",
-                    "4,1", "4,2", "4,3", "4,4", "4,5",
-                    "5,1", "5,2", "5,3", "5,4", "5,5",
-                ]
 
 def startConnection(host, port):
     "Starts and registers a socket with the server"
@@ -88,9 +81,12 @@ def process_response(actionValue, message):
         elif action == "YourTurn":
             print(message.response["Value"])
             value = input()
-            while value != "Quit" and value not in validSelections:
-                print("Invalid selection! Please choose a row number and a col number between 1 and 5")
+            x,y = value.split(',')
+            while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
+                print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
                 value = input()
+                x,y = value.split(',')
+
             if value == "Quit":
                 request = create_request(action=value, value="")
             else:
