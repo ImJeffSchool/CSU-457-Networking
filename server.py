@@ -25,6 +25,14 @@ messageList = []
 sockList = []
 gameInstance = Jeopardy.Jeopardy()
 
+testGameOverArray = [
+                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
+                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
+                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
+                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
+                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY"
+                    ]
+
 def listening_socket():
     """Method for listening to incoming connections"""
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -98,21 +106,31 @@ def processRequest(actionValue, message):
             response = {"Action": "Ready", "Value": "You are Ready-ed Up!"}
     elif action == "PlayerSelection":
         x, y = value.split(",")
-        question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)]
-        gameInstance.playerGuess = int(x), int(y)
-        response = {"Action": "SelectedQuestion", "Value": str(question)}   
+        question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)-1][int(y)-1]
+        gameInstance.playerGuess = int(x)-1, int(y)-1
+        if question == "EMPTY":
+            response = {"Action": "YourTurn", "Value": "Chosen question has already been answered. Please choose a different question! (Enter like <ColNumber,RowNumber>)"}
+        else:
+            response = {"Action": "SelectedQuestion", "Value": str(question)}
+            messageList[gameInstance.currentPlayer-1].dontSendYourTurn = True
     elif action == "PlayerAnswer":
         x = gameInstance.playerGuess[0]
         y = gameInstance.playerGuess[1]
         response = {"Action": "ValidateAnswer", "Value": ""} 
         if value.lower() == (gameInstance.questionsANDanswers.currentAnswerList[int(x)][int(y)]).lower():
             gameInstance.questionsANDanswers.currentQuestionBoard[int(x)][int(y)] = "EMPTY"
-            gameInstance.playerList[gameInstance.currentPlayer-1].add_points(1000)
+            gameInstance.playerList[gameInstance.currentPlayer-1].add_points(gameInstance.questionsANDanswers.aValues[int(x)][int(y)])
             response["Value"] = True
-            gameInstance.round += 1
+            gameInstance.round += 0.5
+            messageList[gameInstance.currentPlayer-1].dontSendYourTurn = False
+            gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
+            
         else:
             response["Value"] = False
             gameInstance.round += 0.5
+            messageList[gameInstance.currentPlayer-1].dontSendYourTurn = False
+            gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
+            
     elif action == "Quit":
         stringMsg = "Player" + str(gameInstance.currentPlayer) + " has quit the game"
         broadcastMsg(stringMsg, "Broadcast")
@@ -121,6 +139,9 @@ def processRequest(actionValue, message):
         currSock.close()
         gameInstance.playerList.remove(gameInstance.playerList[gameInstance.currentPlayer-1])
         checkInsufficientPlayers()
+    
+    elif action == "YesPlayAgain":
+        print("They want to play again")
         
     message.response = message.create_server_message(response)
     message.create_message()
@@ -168,48 +189,86 @@ def LiveGame():
         gameInstance.currentPlayer = genInitialTurnPlayer()
         
     if gameInstance.round % 1 == 0.5: 
-        gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
-        theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn to steal."
-        gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
-        response = {"Action": "SelectedQuestion", "Value": str(gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]])} 
         currentMessageObj = messageList[gameInstance.currentPlayer-1]
-        currentMessageObj.response = currentMessageObj.create_server_message(response)
-        currentMessageObj.create_message()
-        currentMessageObj.toggleReadWriteMode('w')
-        currentMessageObj.request = None
-        currentMessageObj.write()
-        
+        if currentMessageObj.dontSendYourTurn == False:
+            theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
+            broadcastMsg(theBroadcastMsg, "Broadcast")
+            #gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
+            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber,RowNumber>)"}
+            currentMessageObj.response = currentMessageObj.create_server_message(response)
+            currentMessageObj.create_message()
+            currentMessageObj.toggleReadWriteMode('w')
+            currentMessageObj.request = None
+            currentMessageObj.write()
+                
     elif gameInstance.round % 1 == 0:
-        broadcastMsg(packGame(), "Update")
-        theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
-        broadcastMsg(theBroadcastMsg, "Broadcast")
-        response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber, RowNumber>"}
         currentMessageObj = messageList[gameInstance.currentPlayer-1]
-        currentMessageObj.response = currentMessageObj.create_server_message(response)
-        currentMessageObj.create_message()
-        currentMessageObj.toggleReadWriteMode('w')
-        currentMessageObj.request = None
-        currentMessageObj.write()
+        
+        if currentMessageObj.dontSendYourTurn == False:
+            broadcastMsg(packGame(), "Update")
+            theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
+            broadcastMsg(theBroadcastMsg, "Broadcast")
+            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber,RowNumber>)"}
+            currentMessageObj.response = currentMessageObj.create_server_message(response)
+            currentMessageObj.create_message()
+            currentMessageObj.toggleReadWriteMode('w')
+            currentMessageObj.request = None
+            currentMessageObj.write()
+    if all(question == "EMPTY" for sublist in gameInstance.questionsANDanswers.currentQuestionBoard for question in sublist):
+        GameOver()
     return
 
-def packGame():
-    pList = []
+def GameOver():
+    "Checks if the question board is empty, then assigns a winner and closes the server if this was the case"
+    #testGameOverArray
+    # ^^^^^ this test array makes it easier to test if game is over
+    # gameInstance.questionsANDanswers.currentQuestionBoard
+    # ^^^^ use for actual game over check
+    broadcastMsg("Game over! Now determining the winner...", "Broadcast")
+    mostPoints = gameInstance.playerList[0].get_points()
+    bestPlayer = gameInstance.playerList[0]
+    endMessage = ""
     for player in gameInstance.playerList:
-        playerObj = {
-            "name" : player.get_name(),
-            "points" : player.get_points()
-        }
-        pList.append(playerObj)
+        if player.get_points() > mostPoints:
+            mostPoints = player.get_points()
+            bestPlayer = player
+        elif player.get_points() == mostPoints:
+            endMessage = "There was a tie! Both " + bestPlayer.get_name() + " and " + player.get_name() + " have the same number of points!"
+    endMessage = "The player with the most points is: " + bestPlayer.get_name() + " with " + str(mostPoints) + " points! " + bestPlayer.get_name() + " wins!" 
+    broadcastMsg(endMessage, "Broadcast")
+
+
+        #play again       
+        # for message in messageList:
+        #     response = {"Action": "AskPlayAgain", "Value": "Would you like to play again or would you like to quit?"}
+        #     message.response = message.create_server_message(response)
+        #     message.create_message()
+        #     message.toggleReadWriteMode('w')
+        #     message.request = None
+        #     message.write()
         
-    questionObj = {
-        "CurrentBoard": gameInstance.questionsANDanswers.currentQuestionBoard
-    }
+        # for player in gameInstance.playerList:
+        #     selector.unregister(player.get_addrANDport)
+        # for sock in sockList:
+        #     sock.close()   
+    exit()
+        
     
-    gameInstanceJson = {
-        "playerList": pList,
-        "QuestionBoard": questionObj
-    }
-    return gameInstanceJson
+
+def packGame():
+    playerString = ""
+    for player in gameInstance.playerList:
+        # playerObj = {
+        #     "name" : player.get_name(),
+        #     "points" : player.get_points()
+        # }
+        playerString += (player.get_name() + ":" + str(player.get_points()) + ":")
+    
+    # gameInstanceJson = {
+    #     "playerList": pList,
+    # }
+    playerString = playerString[:-1]
+    return playerString
 
 def genInitialTurnPlayer():
     randNum = random.randint(1,MAX_NUM_CLIENTS)
