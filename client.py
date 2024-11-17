@@ -59,10 +59,7 @@ def process_response(actionValue, message):
 
     while alldata:
         action = alldata[0]
-        if action == "Update":
-            value = alldata[1:]
-        else:
-            value = alldata[1]
+        value = alldata[1]
     
     #################################
     #process the response from server
@@ -74,9 +71,9 @@ def process_response(actionValue, message):
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
-            print("Player list is: ", message.response["Value"]["playerList"])
-            time.sleep(1)
-            print("QuestionBoard is ", message.response["Value"]["QuestionBoard"]["CurrentBoard"])
+            #print("Player list is: ", message.response["Value"]["playerList"]
+            print("Player list is: ", value)
+                
             message.toggleReadWriteMode('r')
         elif action == "YourTurn":
             print(message.response["Value"])
@@ -120,7 +117,14 @@ def process_response(actionValue, message):
             message.set_client_request(request)
             message.write()
 
-        alldata = alldata[2:]
+        if len(alldata) > 2:
+            alldata = alldata[2:]
+        if len(alldata) == 2:
+            alldata = None
+        
+    action = None
+    value = None
+
     #message.response = None
 
 #########################

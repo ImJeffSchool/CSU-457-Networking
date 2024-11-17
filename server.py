@@ -256,23 +256,19 @@ def checkIfGameOver():
     
 
 def packGame():
-    pList = []
+    playerString = ""
     for player in gameInstance.playerList:
-        playerObj = {
-            "name" : player.get_name(),
-            "points" : player.get_points()
-        }
-        pList.append(playerObj)
-        
-    questionObj = {
-        "CurrentBoard": gameInstance.questionsANDanswers.currentQuestionBoard
-    }
+        # playerObj = {
+        #     "name" : player.get_name(),
+        #     "points" : player.get_points()
+        # }
+        playerString += (player.get_name() + ":" + str(player.get_points()) + ":")
     
-    gameInstanceJson = {
-        "playerList": pList,
-        "QuestionBoard": questionObj
-    }
-    return gameInstanceJson
+    # gameInstanceJson = {
+    #     "playerList": pList,
+    # }
+    playerString = playerString[:-1]
+    return playerString
 
 def genInitialTurnPlayer():
     randNum = random.randint(1,MAX_NUM_CLIENTS)
