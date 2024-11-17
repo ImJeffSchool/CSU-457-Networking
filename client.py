@@ -68,6 +68,9 @@ def process_response(actionValue, message):
             print(value, "Now waiting for other players...")
             message.toggleReadWriteMode("r")
         elif action == "Broadcast":
+            if "The player with the most points is:" in value:
+                print(value)
+                exit()
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
@@ -83,7 +86,7 @@ def process_response(actionValue, message):
                 print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
                 value = input()
                 x,y = value.split(',')
-
+            
             if value == "Quit":
                 request = create_request(action=value, value="")
             else:

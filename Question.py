@@ -30,7 +30,7 @@ class Question:
                             ["The Pacific Ocean", "Centaur", "HyperText Transfer Protocol", "Tokyo", "Diamond"],
                             ["Amelia Earhart", "Pirates of the Caribbean", "Vincent van Gogh", "Stork", "Thor"],
                             ["Jupiter", "Fe", "12", "Apple", "Robert Downey Jr."],
-                            [" Neil Armstrong", "Russia", "Poseidon", "Carbon dioxide", "Mount Everest"],
+                            ["Neil Armstrong", "Russia", "Poseidon", "Carbon dioxide", "Mount Everest"],
         ]
         
         self.aValues = [

@@ -214,33 +214,28 @@ def LiveGame():
             currentMessageObj.toggleReadWriteMode('w')
             currentMessageObj.request = None
             currentMessageObj.write()
-    checkIfGameOver()
+    if all(question == "EMPTY" for sublist in gameInstance.questionsANDanswers.currentQuestionBoard for question in sublist):
+        GameOver()
     return
 
-def checkIfGameOver():
+def GameOver():
     "Checks if the question board is empty, then assigns a winner and closes the server if this was the case"
     #testGameOverArray
     # ^^^^^ this test array makes it easier to test if game is over
     # gameInstance.questionsANDanswers.currentQuestionBoard
     # ^^^^ use for actual game over check
-    count = 0
-    for question in gameInstance.questionsANDanswers.currentQuestionBoard:
-        if question == "EMPTY":
-            count +=1
-            
-    if count == len(gameInstance.questionsANDanswers.currentQuestionBoard): #this here means the game is over, son!
-        broadcastMsg("Game over! Now determining the winner...", "Broadcast")
-        mostPoints = gameInstance.playerList[0].get_points()
-        bestPlayer = gameInstance.playerList[0]
-        endMessage = ""
-        for player in gameInstance.playerList:
-            if player.get_points() > mostPoints:
-                mostPoints = player.get_points()
-                bestPlayer = player
-            elif player.get_points() == mostPoints:
-                endMessage = "There was a tie! Both " + bestPlayer.get_name() + " and " + player.get_name() + " have the same number of points!"
-        endMessage = "The player with the most points is: " + bestPlayer.get_name() + " with " + str(mostPoints) + " points! " + bestPlayer.get_name() + " wins!" 
-        broadcastMsg(endMessage, "Broadcast")
+    broadcastMsg("Game over! Now determining the winner...", "Broadcast")
+    mostPoints = gameInstance.playerList[0].get_points()
+    bestPlayer = gameInstance.playerList[0]
+    endMessage = ""
+    for player in gameInstance.playerList:
+        if player.get_points() > mostPoints:
+            mostPoints = player.get_points()
+            bestPlayer = player
+        elif player.get_points() == mostPoints:
+            endMessage = "There was a tie! Both " + bestPlayer.get_name() + " and " + player.get_name() + " have the same number of points!"
+    endMessage = "The player with the most points is: " + bestPlayer.get_name() + " with " + str(mostPoints) + " points! " + bestPlayer.get_name() + " wins!" 
+    broadcastMsg(endMessage, "Broadcast")
 
 
         #play again       
@@ -251,7 +246,12 @@ def checkIfGameOver():
         #     message.toggleReadWriteMode('w')
         #     message.request = None
         #     message.write()
-        #exit()
+        
+        # for player in gameInstance.playerList:
+        #     selector.unregister(player.get_addrANDport)
+        # for sock in sockList:
+        #     sock.close()   
+    exit()
         
     
 
