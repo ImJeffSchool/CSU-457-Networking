@@ -117,13 +117,13 @@ def process_response(actionValue, message):
             message.set_client_request(request)
             message.write()
 
-        if len(alldata) > 2:
-            alldata = alldata[2:]
-        if len(alldata) == 2:
-            alldata = None
+        #if len(alldata) > 2:
+        alldata = alldata[2:]
+        #if len(alldata) == 2:
+         #   alldata = None
         
-    action = None
-    value = None
+        action = None
+        value = None
 
     #message.response = None
 

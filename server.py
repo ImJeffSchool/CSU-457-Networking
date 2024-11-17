@@ -109,7 +109,7 @@ def processRequest(actionValue, message):
         question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)-1][int(y)-1]
         gameInstance.playerGuess = int(x)-1, int(y)-1
         if question == "EMPTY":
-            response = {"Action": "YourTurn", "Value": "Chosen question has already been answered. Please choose a different question! (Enter like <ColNumber, RowNumber>)"}
+            response = {"Action": "YourTurn", "Value": "Chosen question has already been answered. Please choose a different question! (Enter like <ColNumber,RowNumber>)"}
         else:
             response = {"Action": "SelectedQuestion", "Value": str(question)}
             messageList[gameInstance.currentPlayer-1].dontSendYourTurn = True
@@ -194,7 +194,7 @@ def LiveGame():
             theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
             broadcastMsg(theBroadcastMsg, "Broadcast")
             #gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
-            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber, RowNumber>)"}
+            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber,RowNumber>)"}
             currentMessageObj.response = currentMessageObj.create_server_message(response)
             currentMessageObj.create_message()
             currentMessageObj.toggleReadWriteMode('w')
@@ -208,7 +208,7 @@ def LiveGame():
             broadcastMsg(packGame(), "Update")
             theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
             broadcastMsg(theBroadcastMsg, "Broadcast")
-            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber, RowNumber>)"}
+            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber,RowNumber>)"}
             currentMessageObj.response = currentMessageObj.create_server_message(response)
             currentMessageObj.create_message()
             currentMessageObj.toggleReadWriteMode('w')
