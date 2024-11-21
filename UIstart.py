@@ -1,4 +1,4 @@
-# Test GUI right now, for actually functinality we will need to create this as a Class and add to Client.py
+# Test GUI right now, for actually functionality we will need to create this as a Class and add to Client.py
 
 import tkinter as tk
 from tkinter import messagebox
@@ -17,7 +17,7 @@ def helpButtonOnClick():
 def quitButtonOnClick():
     #sel.unregister
     #sock.close()
-    #IDK if the above happens here i just have this in a fucntion incase we want to handle it here
+    #IDK if the above happens here i just have this in a function incase we want to handle it here
     root.destroy()
 
 def startButtonOnClick():
@@ -56,7 +56,7 @@ buttonFrame.columnconfigure(0, weight=1)
 buttonFrame.columnconfigure(1, weight=1)
 buttonFrame.pack()
 
-# Buttons are placed in the frame and any placement modifiers will be done w/in the buttonFram OBJ
+# Buttons are placed in the frame and any placement modifiers will be done w/in the buttonFrame OBJ
 readyBtn = tk.Button(buttonFrame, text="Ready Up", font=('Arial', 16), command=startButtonOnClick)
 readyBtn.grid(row=0, column=0)
 quitBtn = tk.Button(buttonFrame, text="Quit", font=('Arial', 16), command=quitButtonOnClick)
