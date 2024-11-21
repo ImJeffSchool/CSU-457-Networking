@@ -59,10 +59,7 @@ def process_response(actionValue, message):
 
     while alldata:
         action = alldata[0]
-        if action == "Update":
-            value = alldata[1:]
-        else:
-            value = alldata[1]
+        value = alldata[1]
     
     #################################
     #process the response from server
@@ -71,16 +68,25 @@ def process_response(actionValue, message):
             print(value, "Now waiting for other players...")
             message.toggleReadWriteMode("r")
         elif action == "Broadcast":
+            if "The player with the most points is:" in value:
+                print(value)
+                exit()
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
-            print("Player list is: ", message.response["Value"]["playerList"])
-            time.sleep(1)
-            print("QuestionBoard is ", message.response["Value"]["QuestionBoard"]["CurrentBoard"])
+            #print("Player list is: ", message.response["Value"]["playerList"]
+            print("Player list is: ", value)
+                
             message.toggleReadWriteMode('r')
         elif action == "YourTurn":
             print(message.response["Value"])
             value = input()
+            x,y = value.split(',')
+            while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
+                print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
+                value = input()
+                x,y = value.split(',')
+            
             if value == "Quit":
                 request = create_request(action=value, value="")
             else:
@@ -103,8 +109,25 @@ def process_response(actionValue, message):
                 print("You got it right")
             else:
                 print("You got it wrong!")
+        elif action == "AskPlayAgain":
+            print(message.response["Value"])
+            value = input()
+            if value == "Quit":
+                request = create_request(action=value, value="")
+            else:
+                action = "YesPlayAgain"
+                request = create_request(action, value)
+            message.set_client_request(request)
+            message.write()
 
+        #if len(alldata) > 2:
         alldata = alldata[2:]
+        #if len(alldata) == 2:
+         #   alldata = None
+        
+        action = None
+        value = None
+
     #message.response = None
 
 #########################

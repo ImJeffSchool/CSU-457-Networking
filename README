@@ -7,7 +7,7 @@ This is a simple Game show example implemented using Python and sockets.
 "python server.py -p 54321" - Where -p is the specified port number.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals. Once a player connects, they may adjust game settings and ready up. An example of this would look like:
 "python client.py -i 123.45.67.89 -p 54321" - Where -i is the client's IP address and -p is the port number connecting to the server. Ensure that when connecting both clients have different IP addresses.
-3. **Play the game:** Jeopardy style game where players, in a round-robin fashion. One Player will select a question from the board and given the chance to answer the question, If the first player doesn't answer the question correctly, it then goes over to the next player where they now have the chance to answer the question for points. Players take turns answering their selected questions, being awarded respective points. The game will continue to play until all questions are answered on the board. 
+3. **Play the game:** Jeopardy style game where one Player will select a question from the board and given the chance to answer the question, If the first player doesn't answer the question correctly, it then goes over to the next player where they now have the chance to answer the question for points. Players take turns answering their selected questions, being awarded respective points. The game will continue to play until all questions are answered on the board. Whichever player has the most amount of points at the end will be deemed the victor.
 
 # Message Protocol:
 1. Players who get connected to the server must then ready up or quit. 
@@ -21,7 +21,8 @@ This is a simple Game show example implemented using Python and sockets.
 'client.py': Handles the clientside connection and game logic updates. The server and client each have an associated gameInstance object to ensure consistent game state for all connected players.
 'Message.py': Handles the message objects for the server and client. Sends a JSON object that signals things like *ReadyUp* and *QuestionSelection.*
 'Jeopardy.py': Handles the game state, keeping a list of all players and the current quesiton and answers board.
-'Player.py': Handles the individual player data, things like their name, points, connected IP and port. 
+'Player.py': Handles the individual player data, things like their name, points, connected IP and port.
+'Question.py': Handles our question board and points board where each row and column has their respective answers. 
 
 # Technologies used:
 * Python
