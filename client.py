@@ -11,6 +11,7 @@ import Message
 import time
 import getopt
 import Jeopardy
+import ClientUI
 
 logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO)
 sel = selectors.DefaultSelector()
@@ -154,6 +155,8 @@ for opt, arg in opts:
     elif opt in ['-n']:
         print("The name of the DNS server is: CRAWFORD.ColoState.EDU")
         exit()
+
+ClientUI.ClientUI()
 
 try:
     message = startConnection(host, port)
