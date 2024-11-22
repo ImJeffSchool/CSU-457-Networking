@@ -1,2 +1,16 @@
-INFO:root: Server is listening on: 0.0.0.0:54321
+INFO:root: Server is listening on: 0.0.0.0:54322
+INFO:root:Accepted connection from this client: ('127.0.0.1', 48640)
+INFO:root:Client list: [Messaging Instance:
+Role: server
+Address: ('127.0.0.1', 48640)
+Selector: <selectors.EpollSelector object at 0x7f851d795210>
+Socket: <socket.socket fd=6, family=2, type=1, proto=0, laddr=('127.0.0.1', 54322), raddr=('127.0.0.1', 48640)>
+Game Instance: Present
+Receive Buffer Size: 0
+Send Buffer Size: 0
+JSON Header Length: None
+JSON Header: None
+Response: None
+Request: None
+]
 INFO:root:caught keyboard interrupt, exiting

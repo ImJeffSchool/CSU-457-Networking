@@ -12,12 +12,13 @@ class ClientUI:
                 [1600, 1600, 1600, 1600, 1600]
             ]
     input = ""
-    
-    def quitButtonOnClick(self, root):
+    root = tk.Tk()
+
+    def quitButtonOnClick(self):
         #sel.unregister
         #sock.close()
         #IDK if the above happens here i just have this in a function incase we want to handle it here
-        root.destroy()
+        self.root.destroy()
 
     def makeBoard(self):
         root = tk.Tk()
@@ -37,12 +38,13 @@ class ClientUI:
                 button = tk.Button(buttonFrame, text=self.displayBoard[i][j], font=('Arial', 32))
                 button.grid(row=i, column=j+1, padx=10, pady=20)
     
-    def get_input(self, entry):
-        input = entry.get()
-        return input
+    def get_input(self, entry, readyRoot):
+        self.input = entry.get()
+        readyRoot.quit()
     
-    def readyButtonOnClick(self, root):
+    def readyButtonOnClick(self):
         self.createReadyUI()
+        self.root.quit()
         #self.makeBoard()
     
     def helpButtonOnClick(self):
@@ -64,31 +66,31 @@ class ClientUI:
         entry.pack()
         
         
-        submitButton = tk.Button(readyRoot, text = "Submit", command=lambda: self.get_input(entry))
+        submitButton = tk.Button(readyRoot, text = "Submit", command=lambda: self.get_input(entry, readyRoot))
         submitButton.pack()
+
         readyRoot.mainloop()
 
     def displayMM(self):
         #root window for UI
-        root = tk.Tk()
-        root.geometry("800x500")
-        root.title("Jeo-Jeopardy")
+        self.root.geometry("800x500")
+        self.root.title("Jeo-Jeopardy")
 
         # Text displayed at the top of the window --- .pack() used to 'pack' it into the window?
-        label = tk.Label(root, text="Welcome to Jeo-Jeopardy", font=('Arial', 18))
+        label = tk.Label(self.root, text="Welcome to Jeo-Jeopardy", font=('Arial', 18))
         label.pack()
 
         # Frame to hold the buttons. Pack buttons into frame and then modify frame placement
-        buttonFrame = tk.Frame(root)
+        buttonFrame = tk.Frame(self.root)
         buttonFrame.columnconfigure(0, weight=1)
         buttonFrame.columnconfigure(1, weight=1)
         buttonFrame.pack()
 
         # Buttons are placed in the frame and any placement modifiers will be done w/in the buttonFrame OBJ
-        readyBtn = tk.Button(buttonFrame, text="Ready Up", font=('Arial', 16), command=lambda: self.readyButtonOnClick(root))
+        readyBtn = tk.Button(buttonFrame, text="Ready Up", font=('Arial', 16), command=self.readyButtonOnClick)
         #readyBtn = tk.Button(buttonFrame, text="Ready Up", font=('Arial', 16), command=None)
         readyBtn.grid(row=0, column=0)
-        quitBtn = tk.Button(buttonFrame, text="Quit", font=('Arial', 16), command=lambda: self.quitButtonOnClick(root))
+        quitBtn = tk.Button(buttonFrame, text="Quit", font=('Arial', 16), command=self.quitButtonOnClick)
         #quitBtn = tk.Button(buttonFrame, text="Quit", font=('Arial', 16), command=None)
         quitBtn.grid(row=2, column=0)
         helpBtn = tk.Button(buttonFrame, text="Help", font=('Arial', 16), command=self.helpButtonOnClick)
@@ -96,7 +98,7 @@ class ClientUI:
         helpBtn.grid(row=1, column=0)
 
         # Called after all elements have been created and packed
-        root.mainloop()
+        self.root.mainloop()
 
         
     def __init__(self):
