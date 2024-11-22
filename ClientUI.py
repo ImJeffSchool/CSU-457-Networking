@@ -41,7 +41,10 @@ class ClientUI:
     def get_input(self, entry, readyRoot):
         self.input = entry.get()
         readyRoot.quit()
-    
+
+    def printPopUp(value):
+        messagebox.showinfo("Message", value)
+
     def readyButtonOnClick(self):
         self.createReadyUI()
         self.root.quit()

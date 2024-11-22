@@ -66,7 +66,8 @@ def process_response(actionValue, message):
     #process the response from server
     #################################
         if action == "Ready":
-            print(value, "Now waiting for other players...")
+            CUI.printPopUp(value + "Now waiting for other players...")
+            # print(value, "Now waiting for other players...")
             message.toggleReadWriteMode("r")
         elif action == "Broadcast":
             if "The player with the most points is:" in value:
