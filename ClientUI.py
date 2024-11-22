@@ -11,8 +11,9 @@ class ClientUI:
                 [800, 800, 800, 800, 800],
                 [1600, 1600, 1600, 1600, 1600]
             ]
+    input = ""
     
-    def quitButtonOnClick(self):
+    def quitButtonOnClick(self, root):
         #sel.unregister
         #sock.close()
         #IDK if the above happens here i just have this in a function incase we want to handle it here
@@ -40,7 +41,7 @@ class ClientUI:
         input = entry.get()
         return input
     
-    def startButtonOnClick(self):
+    def readyButtonOnClick(self, root):
         self.createReadyUI()
         #self.makeBoard()
     
@@ -48,25 +49,26 @@ class ClientUI:
         messagebox.showinfo("Message","HELP I AM TRAPPED IN HERE")
         
     def createReadyUI(self):
-        root = tk.Tk()
-        root.geometry("1000x1000")
-        root.title("nameSubmission")
-        label = tk.Label(root, text="Please enter your name:", font=('Arial', 48))
+        readyRoot = tk.Tk()
+        readyRoot.geometry("1000x1000")
+        readyRoot.title("nameSubmission")
+        label = tk.Label(readyRoot, text="Please enter your name:", font=('Arial', 48))
         label.pack()
         
-        buttonFrame = tk.Frame(root)
+        buttonFrame = tk.Frame(readyRoot)
         buttonFrame.columnconfigure(0, weight=1)
         buttonFrame.columnconfigure(1, weight=1)
         buttonFrame.pack()
         
-        entry = tk.Entry(root)
+        entry = tk.Entry(readyRoot)
         entry.pack()
         
         
-        submitButton = tk.Button(root, text = "Submit", command=lambda: self.get_input(entry))
+        submitButton = tk.Button(readyRoot, text = "Submit", command=lambda: self.get_input(entry))
         submitButton.pack()
-        
-    def __init__(self):
+        readyRoot.mainloop()
+
+    def displayMM(self):
         #root window for UI
         root = tk.Tk()
         root.geometry("800x500")
@@ -83,10 +85,10 @@ class ClientUI:
         buttonFrame.pack()
 
         # Buttons are placed in the frame and any placement modifiers will be done w/in the buttonFrame OBJ
-        readyBtn = tk.Button(buttonFrame, text="Ready Up", font=('Arial', 16), command=self.startButtonOnClick)
+        readyBtn = tk.Button(buttonFrame, text="Ready Up", font=('Arial', 16), command=lambda: self.readyButtonOnClick(root))
         #readyBtn = tk.Button(buttonFrame, text="Ready Up", font=('Arial', 16), command=None)
         readyBtn.grid(row=0, column=0)
-        quitBtn = tk.Button(buttonFrame, text="Quit", font=('Arial', 16), command=self.quitButtonOnClick)
+        quitBtn = tk.Button(buttonFrame, text="Quit", font=('Arial', 16), command=lambda: self.quitButtonOnClick(root))
         #quitBtn = tk.Button(buttonFrame, text="Quit", font=('Arial', 16), command=None)
         quitBtn.grid(row=2, column=0)
         helpBtn = tk.Button(buttonFrame, text="Help", font=('Arial', 16), command=self.helpButtonOnClick)
@@ -96,7 +98,6 @@ class ClientUI:
         # Called after all elements have been created and packed
         root.mainloop()
 
-
-
-
-
+        
+    def __init__(self):
+        pass
