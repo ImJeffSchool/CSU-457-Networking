@@ -306,7 +306,8 @@ try:
         events = selector.select(timeout=None)
         for key, value in events:
             if key.data is None: 
-                accept_connection(key.fileobj)
+                if len(gameInstance.playerList) < MAX_NUM_CLIENTS:
+                    accept_connection(key.fileobj)
             # Need to figure out the correct elif to not call processRequest unless game data is in Message
             elif len(gameInstance.playerList) == MAX_NUM_CLIENTS:     
                 processRequest(handle_incoming_data(key, value), key.data)
