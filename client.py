@@ -66,27 +66,32 @@ def process_response(actionValue, message):
     #################################
         if action == "Ready":
             print(value, "Now waiting for other players...")
+            print("You can always type <Quit> to any question/answer prompt to leave the game!")
             message.toggleReadWriteMode("r")
         elif action == "Broadcast":
             if "The player with the most points is:" in value:
+                print(value)
+                exit()
+            if "Now exiting" in value:
                 print(value)
                 exit()
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
             #print("Player list is: ", message.response["Value"]["playerList"]
-            print("Player list is: ", value)
+            print("Player scores are: ", value)
                 
             message.toggleReadWriteMode('r')
         elif action == "YourTurn":
             print(message.response["Value"])
             value = input()
-            x,y = value.split(',')
-            while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
-                print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
-                value = input()
+            if ',' in value:
                 x,y = value.split(',')
-            
+                while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
+                    print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
+                    value = input()
+                    x,y = value.split(',')
+             
             if value == "Quit":
                 request = create_request(action=value, value="")
             else:
@@ -105,7 +110,7 @@ def process_response(actionValue, message):
             message.set_client_request(request)
             message.write()
         elif action == "ValidateAnswer":
-            if (message.response["Value"]):
+            if (message.response["Value"] == True):
                 print("You got it right")
             else:
                 print("You got it wrong!")
@@ -125,6 +130,7 @@ def process_response(actionValue, message):
         #if len(alldata) == 2:
          #   alldata = None
         
+        if value == "Quit": exit()
         action = None
         value = None
 
