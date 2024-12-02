@@ -119,10 +119,10 @@ class Message:
             self.create_message()
         
         if self._send_buffer:
-            print(f"Sending message to {self.addr}")
+            #print(f"Sending message to {self.addr}")
             try:
                 sent = self.sock.send(self._send_buffer)
-                print("Sent!!!!\n")
+                #print("Sent!!!!\n")
             except BlockingIOError:
                 pass
             else:
