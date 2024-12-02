@@ -27,6 +27,7 @@ def startConnection(host, port):
     sock.setblocking(False)
     errorNumber = sock.connect_ex(serverAddress)
 
+    print(errorNumber)
     if errorNumber == 0 or errorNumber == 115 :
         print("You successfully connected to the server!\n")
     else:
