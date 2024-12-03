@@ -71,3 +71,10 @@ select, ready, quit, answerQuestions,
 
 response JSON
 provideQuestion, validateAnswer, provideAnswer
+
+# Security/Risk Evaluation:
+1. Lack of Authentication - We can introduce an authentication system using usernames and passwords.
+2. Lack of Data Encryption - We can implement TLS/SSL encryption for commmunication between clients and the server.
+3. Potential Socket Exploits - We can add rate-limiting to limit the amount of data being sent to prevent potential flooding.
+4. Hardcoded Error Messages - We can be more general about our error messages to avoid revealing unecessary details to a potential attacker.
+5. Code Injection - We can implement escape mechanisms and strictly enforce handling of strings.
