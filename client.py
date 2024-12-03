@@ -16,27 +16,55 @@ logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO
 sel = selectors.DefaultSelector()
 gameInstance = Jeopardy.Jeopardy()
 
+import selectors
+import socket
+
 def startConnection(host, port):
-    "Starts and registers a socket with the server"
+    """Starts and registers a socket with the server"""
     serverAddress = (host, port)
 
     print('Starting connection to ', serverAddress)
     logging.info('Starting connection to '.join((host, str(port))))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setblocking(False)
+    sock.setblocking(False)  # Ensure non-blocking mode
     errorNumber = sock.connect_ex(serverAddress)
 
-    if errorNumber == 0 or errorNumber == 115 :
-        print("You successfully connected to the server!\n")
+    if errorNumber == 0 or errorNumber == 115:
+        print("Connection initiated, waiting for server response...\n")
+        
+        tmpSel = selectors.DefaultSelector()
+        tmpSel.register(sock, selectors.EVENT_READ)
+
+        # Wait for up to 0.2 seconds for a response from the server
+        events = tmpSel.select(timeout=0.2)
+        tmpSel.unregister(sock)
+
+        if events:
+            try:
+                # Read the server's response if available
+                response = sock.recv(1024).decode('utf-8')
+                if "denied" in response.lower():
+                    print(f"Connection denied by server: {response}")
+                    sock.close()
+                    exit()
+                else:
+                    print(f"Server response: {response}")
+            except Exception as e:
+                print(f"Error receiving server response: {e}")
+                exit()
+        else:
+            print("Successfully connected to the Jeo-Jeopardy Lobby!")
     else:
         errorLine = linecache.getline('./resources/TCPErrorNumbers.txt', errorNumber)
         print('Unable to connect. Error code: ' + errorLine)
         logging.info('Unable to connect. Error code: ' + errorLine)
+        exit()
 
+    # Register the socket for normal operations
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    message = Message.Message(sel, sock, serverAddress, role = 'client')
-    sel.register(sock, events, data = message)
+    message = Message.Message(sel, sock, serverAddress, role='client')
+    sel.register(sock, events, data=message)
 
     return message
 
@@ -135,9 +163,7 @@ def process_response(actionValue, message):
 
     #message.response = None
 
-#########################
-#Parse Command line args
-#########################
+# Parse Command line args
 argv = sys.argv[1:]
 try: 
     opts, args = getopt.getopt(argv, "i:p:hn") 

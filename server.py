@@ -47,11 +47,23 @@ def listening_socket():
 def accept_connection(sock):
     """Method for accepting incoming connections"""
     sockOBJ, addrANDport = sock.accept()
+    sockOBJ.setblocking(True)
+
+    # Check if game lobby full after starting to connect
+    if len(gameInstance.playerList) == MAX_NUM_CLIENTS:
+        try:
+            sockOBJ.sendall(("Lobby connection denied. [Full Lobby]").encode('utf-8'))
+            logging.info(f"Denied connectino from {addrANDport}: Lobby is full")
+        except Exception as e:
+            logging.error(f"Error sending denial message to {addrANDport}: {e}")
+        finally:
+            sockOBJ.close()
+        return
+
     server_Events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = Message.Message(selector, sockOBJ, addrANDport, role='server', gameInstance=gameInstance)
     messageList.append(message)
 
-    sockOBJ.setblocking(True)
     sockList.append(sockOBJ)
     selector.register(sockOBJ, server_Events, data=message)
     logging.info(f"Accepted connection from this client: {addrANDport}")
@@ -251,9 +263,7 @@ def GameOver():
         #     selector.unregister(player.get_addrANDport)
         # for sock in sockList:
         #     sock.close()   
-    exit()
-        
-    
+    exit() 
 
 def packGame():
     playerString = ""
@@ -306,8 +316,7 @@ try:
         events = selector.select(timeout=None)
         for key, value in events:
             if key.data is None: 
-                if len(gameInstance.playerList) < MAX_NUM_CLIENTS:
-                    accept_connection(key.fileobj)
+                accept_connection(key.fileobj)
             # Need to figure out the correct elif to not call processRequest unless game data is in Message
             elif len(gameInstance.playerList) == MAX_NUM_CLIENTS:     
                 processRequest(handle_incoming_data(key, value), key.data)
