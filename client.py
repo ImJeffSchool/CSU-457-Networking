@@ -16,9 +16,6 @@ logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO
 sel = selectors.DefaultSelector()
 gameInstance = Jeopardy.Jeopardy()
 
-import selectors
-import socket
-
 def startConnection(host, port):
     """Starts and registers a socket with the server"""
     serverAddress = (host, port)
@@ -48,8 +45,6 @@ def startConnection(host, port):
                     print(f"Connection denied by server: {response}")
                     sock.close()
                     exit()
-                else:
-                    print(f"Server response: {response}")
             except Exception as e:
                 print(f"Error receiving server response: {e}")
                 exit()
