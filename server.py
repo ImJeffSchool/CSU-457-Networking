@@ -14,7 +14,6 @@ import time
 import random
 import json
 
-# Selector object to multiplex I/O operations & logging for file
 logging.basicConfig(filename='logs/Server.log', filemode='w', level=logging.INFO)
 selector = selectors.DefaultSelector() 
 
@@ -41,7 +40,7 @@ def listening_socket():
     listen_Socket.setblocking(False)
     selector.register(listen_Socket, selectors.EVENT_READ, data=None)
 
-    print(' Server is listening on: ', (host, port))
+    print('Server is listening on: ', (host, port))
     logging.info(f" Server is listening on: {host}:{port}")
 
 def accept_connection(sock):
@@ -49,7 +48,6 @@ def accept_connection(sock):
     sockOBJ, addrANDport = sock.accept()
     sockOBJ.setblocking(True)
 
-    # Check if game lobby full after starting to connect
     if len(gameInstance.playerList) == MAX_NUM_CLIENTS:
         try:
             sockOBJ.sendall(("Lobby connection denied. [Full Lobby]").encode('utf-8'))
@@ -90,14 +88,13 @@ def handle_incoming_data(key, value=None):
         return
     except RuntimeError as e:
         logging.info(f"Caught a RuntimeError in handle_incoming_data: {e}")
-        #print(f"Caught a RuntimeError in handle_incoming_data: {e}")
         selector.unregister(sock)
         sock.close()
         i = 1
         for player in gameInstance.playerList:
             if player.get_addrANDport() == message.addr:
                 gameInstance.playerList.remove(player)
-                stringMsg = "Player" + str(i) + " has disconnected unexpectedly"
+                stringMsg = "Player " + str(i) + " has disconnected unexpectedly"
                 broadcastMsg(stringMsg, "Broadcast")
             i +=1
         
@@ -136,7 +133,6 @@ def processRequest(actionValue, message):
             gameInstance.round += 0.5
             messageList[gameInstance.currentPlayer-1].dontSendYourTurn = False
             gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
-            
         else:
             response["Value"] = False
             gameInstance.round += 0.5
@@ -144,7 +140,7 @@ def processRequest(actionValue, message):
             gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
             
     elif action == "Quit":
-        stringMsg = "Player" + str(gameInstance.currentPlayer) + " has quit the game"
+        stringMsg = "Player " + str(gameInstance.currentPlayer) + " has quit the game"
         broadcastMsg(stringMsg, "Broadcast")
         currSock = gameInstance.playerList[gameInstance.currentPlayer-1].get_sockOBJ()
         selector.unregister(currSock)
@@ -196,14 +192,13 @@ def LiveGame():
     """Handles the game logic once all players have readied up"""
     if gameInstance.round == -1.0:
         gameInstance.round = 0.0
-        
     if gameInstance.currentPlayer == None:
         gameInstance.currentPlayer = genInitialTurnPlayer()
-        
     if gameInstance.round % 1 == 0.5: 
         currentMessageObj = messageList[gameInstance.currentPlayer-1]
         if currentMessageObj.dontSendYourTurn == False:
-            theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
+            player_name = gameInstance.playerList[gameInstance.currentPlayer-1].get_name()
+            theBroadcastMsg = "It is now player "+ player_name + "'s turn."
             broadcastMsg(theBroadcastMsg, "Broadcast")
             #gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
             response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber,RowNumber>)"}
@@ -212,15 +207,15 @@ def LiveGame():
             currentMessageObj.toggleReadWriteMode('w')
             currentMessageObj.request = None
             currentMessageObj.write()
-                
     elif gameInstance.round % 1 == 0:
         currentMessageObj = messageList[gameInstance.currentPlayer-1]
         
         if currentMessageObj.dontSendYourTurn == False:
             broadcastMsg(packGame(), "Update")
-            theBroadcastMsg = "It is now player"+ str(gameInstance.currentPlayer) + "'s turn."
+            player_name = gameInstance.playerList[gameInstance.currentPlayer-1].get_name()
+            theBroadcastMsg = "It is now player "+ player_name + "'s turn."
             broadcastMsg(theBroadcastMsg, "Broadcast")
-            response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber,RowNumber>)"}
+            response = {"Action": "YourTurn", "Value": "Choose a question. The game is a 5x5 grid with various questions. (Enter like <ColNumber,RowNumber>)"}
             currentMessageObj.response = currentMessageObj.create_server_message(response)
             currentMessageObj.create_message()
             currentMessageObj.toggleReadWriteMode('w')
@@ -274,9 +269,6 @@ def packGame():
         # }
         playerString += (player.get_name() + ":" + str(player.get_points()) + ":")
     
-    # gameInstanceJson = {
-    #     "playerList": pList,
-    # }
     playerString = playerString[:-1]
     return playerString
 
@@ -292,7 +284,6 @@ def determineNextTurn(currentTurn):
         nextTurn = currentTurn+1
     return nextTurn
 
-# Main method for the server
 argv = sys.argv[1:]
 try: 
     opts, args = getopt.getopt(argv, "p:hn") 

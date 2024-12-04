@@ -76,13 +76,14 @@ class Message:
         value = self.response["Value"]
         if type(value) == list: 
             actionValue = action + ", " + str(value)
-            
-        else: actionValue = action + ", " + str(value)
+        else: 
+            actionValue = action + ", " + str(value)
         return actionValue
     
     def read(self):
         """Reads incoming data from the socket and processes headers and message."""
         actionValue = ""
+        
         try:
             data = self.sock.recv(4096)
         except BlockingIOError:
@@ -92,7 +93,6 @@ class Message:
             self._recv_buffer += data
         else:
             raise RuntimeError("Peer closed.")
-            
         
         while self._recv_buffer:
             if self._jsonheader_len is None:
@@ -108,7 +108,7 @@ class Message:
                     actionValue += self.process_message()
                 self._jsonheader_len = None
                 self.jsonheader = None
-
+                
         return actionValue
 
     def write(self):
