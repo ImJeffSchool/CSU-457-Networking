@@ -102,6 +102,8 @@ def handle_incoming_data(key, value=None):
         #exit()
 
 def processRequest(actionValue, message):
+    x = None
+    y = None
     if actionValue == None: 
         return
             
@@ -122,6 +124,7 @@ def processRequest(actionValue, message):
         else:
             response = {"Action": "SelectedQuestion", "Value": str(question)}
             messageList[gameInstance.currentPlayer-1].dontSendYourTurn = True
+            gameInstance.questionsANDanswers.pprintBoard[int(x)-1][int(y)-1] = "Empty"
     elif action == "PlayerAnswer":
         x = gameInstance.playerGuess[0]
         y = gameInstance.playerGuess[1]
@@ -156,6 +159,9 @@ def processRequest(actionValue, message):
     message.toggleReadWriteMode('w')
     message.request = None
     message.write()
+    if response["Action"] == "ValidateAnswer" and response["Value"] == True:
+        coordPair =  "#" + str(x) + "," + str(y) + "," + gameInstance.playerList[gameInstance.currentPlayer-1].get_name()
+        broadcastMsg(coordPair, "Broadcast")
     
 def broadcastMsg(msgContent, action):
     "Send to all clients at once"

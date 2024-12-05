@@ -16,6 +16,7 @@ logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO
 sel = selectors.DefaultSelector()
 gameInstance = Jeopardy.Jeopardy()
 
+
 def startConnection(host, port):
     """Starts and registers a socket with the server"""
     serverAddress = (host, port)
@@ -93,12 +94,18 @@ def process_response(actionValue, message):
             if "Now exiting" in value:
                 print(value)
                 exit()
+            if "#" in value:
+                value = value[1:]
+                x,y, name = value.split(",")
+                print("Player " + name + " has answered question at location " + str(x) + "," + str(y))
+                gameInstance.questionsANDanswers.pprintBoard[int(x)][int(y)] = "Empty"
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
             print("Player scores are: ", value)
             message.toggleReadWriteMode('r')
         elif action == "YourTurn":
+            prettyPrintBoard(gameInstance.questionsANDanswers.pprintBoard)
             print(message.response["Value"])
             value = input()
             if ',' in value:
@@ -146,7 +153,14 @@ def process_response(actionValue, message):
         action = None
         value = None
 
+def prettyPrintBoard(pprintBoard):
+    print("-----------------------------------------")
+    for row in pprintBoard:
+        print("| " + " | ".join(f"{num:>5}" for num in row) + " |")
+        print("-----------------------------------------")
+        
 argv = sys.argv[1:]
+
 try: 
     opts, args = getopt.getopt(argv, "i:p:hn") 
 except (getopt.GetoptError, NameError): 
