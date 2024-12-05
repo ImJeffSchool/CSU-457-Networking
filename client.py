@@ -108,6 +108,9 @@ def process_response(actionValue, message):
             prettyPrintBoard(gameInstance.questionsANDanswers.pprintBoard)
             print(message.response["Value"])
             value = input()
+            while ',' not in value or value != "Quit":
+                print("Please try again... <RowNum,ColNum>")
+                value = input()
             if ',' in value:
                 x,y = value.split(',')
                 while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
@@ -124,7 +127,7 @@ def process_response(actionValue, message):
         elif action == "IndicateDuplicate":
             print(value)
         elif action == "SelectedQuestion":
-            print("Please answer this question:", message.response["Value"])
+            print("Please answer this question (case insensitive):", message.response["Value"])
             value = input()
             if value == "Quit":
                 request = create_request(action=value, value="")
@@ -186,7 +189,10 @@ for opt, arg in opts:
 
 try:
     message = startConnection(host, port)
-    action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space: ").split(", ")
+    startIn = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space...\n")
+    while "ready," not in startIn.lower():
+        startIn = input("Please try again, type the word \"Ready\" followed by a single comma, a space, and your name...\n")
+    action, value = startIn.split(", ")
     request = create_request(action, value)
     message.set_client_request(request)
     message.write()
