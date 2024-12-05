@@ -29,14 +29,11 @@ def startConnection(host, port):
         
         tmpSel = selectors.DefaultSelector()
         tmpSel.register(sock, selectors.EVENT_READ)
-
-        # Wait for up to 0.2 seconds for a response from the server
         events = tmpSel.select(timeout=0.2)
         tmpSel.unregister(sock)
 
         if events:
             try:
-                # Read the server's response if available
                 response = sock.recv(1024).decode('utf-8')
                 if "denied" in response.lower():
                     print(f"Connection denied by server: {response}")
@@ -112,10 +109,6 @@ def process_response(actionValue, message):
                 while re.match(rowColRegex, value) == None:
                     value = input("Please try again like <RowNum,ColNum> no spaces\n").strip()
                 x,y = value.split(',')
-                # while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
-                #     print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
-                #     value = input().strip()
-                #     x,y = value.split(',')
                 action = "PlayerSelection"
                 request = create_request(action, value)
             message.set_client_request(request)
@@ -200,7 +193,6 @@ try:
     while True:
         events = sel.select(timeout=None)
         for key, value in events:
-            #message = key.data
             try:
                 process_response(message.process_read_write(value), message)
             except Exception as e:
