@@ -273,7 +273,7 @@ def packGame():
         #     "name" : player.get_name(),
         #     "points" : player.get_points()
         # }
-        playerString += (player.get_name() + ":" + str(player.get_points()) + ":")
+        playerString += (player.get_name() + ": " + str(player.get_points()) + ": ")
     
     playerString = playerString[:-1]
     return playerString
