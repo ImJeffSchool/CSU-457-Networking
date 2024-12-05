@@ -121,6 +121,8 @@ def process_response(actionValue, message):
                 request = create_request(action, value)
             message.set_client_request(request)
             message.write()
+        elif action == "IndicateDuplicate":
+            print(value)
         elif action == "SelectedQuestion":
             print("Please answer this question:", message.response["Value"])
             value = input()

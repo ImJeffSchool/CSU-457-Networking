@@ -120,7 +120,7 @@ def processRequest(actionValue, message):
         question = gameInstance.questionsANDanswers.currentQuestionBoard[int(x)-1][int(y)-1]
         gameInstance.playerGuess = int(x)-1, int(y)-1
         if question == "EMPTY":
-            response = {"Action": "YourTurn", "Value": "Chosen question has already been answered. Please choose a different question! (Enter like <ColNumber,RowNumber>)"}
+            response = {"Action": "IndicateDuplicate", "Value": "Chosen question has already been answered. Now trying again"}
         else:
             response = {"Action": "SelectedQuestion", "Value": str(question)}
             messageList[gameInstance.currentPlayer-1].dontSendYourTurn = True
