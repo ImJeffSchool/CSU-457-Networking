@@ -1,18 +1,13 @@
 import sys
 import socket
 import selectors
-import types
 import logging
 import traceback
-import Question
 import Player
 import Jeopardy
 import Message
-import struct
 import getopt
-import time
 import random
-import json
 
 logging.basicConfig(filename='logs/Server.log', filemode='w', level=logging.INFO)
 selector = selectors.DefaultSelector() 
@@ -24,14 +19,6 @@ messageList = []
 sockList = []
 gameInstance = Jeopardy.Jeopardy()
 
-testGameOverArray = [
-                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
-                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
-                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
-                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY",
-                        "EMPTY", "EMPTY", "EMPTY", "EMPTY", "EMPTY"
-                    ]
-
 def listening_socket():
     """Method for listening to incoming connections"""
     listen_Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -39,7 +26,6 @@ def listening_socket():
     listen_Socket.listen()
     listen_Socket.setblocking(False)
     selector.register(listen_Socket, selectors.EVENT_READ, data=None)
-
     print('Server is listening on: ', (host, port))
     logging.info(f" Server is listening on: {host}:{port}")
 
@@ -97,9 +83,7 @@ def handle_incoming_data(key, value=None):
                 stringMsg = "Player " + str(i) + " has disconnected unexpectedly"
                 broadcastMsg(stringMsg, "Broadcast")
             i +=1
-        
         checkInsufficientPlayers()
-        #exit()
 
 def processRequest(actionValue, message):
     x = None
@@ -109,7 +93,7 @@ def processRequest(actionValue, message):
             
     action, value = actionValue.split(", ")
 
-    if action == "Ready":
+    if action.lower() == "Ready".lower():
         for player in gameInstance.playerList:
             if player.get_addrANDport() == message.addr:
                 player.setReadyState(True)
@@ -142,7 +126,7 @@ def processRequest(actionValue, message):
             messageList[gameInstance.currentPlayer-1].dontSendYourTurn = False
             gameInstance.currentPlayer = determineNextTurn(gameInstance.currentPlayer)
             
-    elif action == "Quit":
+    elif action.lower() == "Quit".lower():
         stringMsg = "Player " + str(gameInstance.currentPlayer) + " has quit the game"
         broadcastMsg(stringMsg, "Broadcast")
         currSock = gameInstance.playerList[gameInstance.currentPlayer-1].get_sockOBJ()
@@ -206,7 +190,6 @@ def LiveGame():
             player_name = gameInstance.playerList[gameInstance.currentPlayer-1].get_name()
             theBroadcastMsg = "It is now player "+ player_name + "'s turn."
             broadcastMsg(theBroadcastMsg, "Broadcast")
-            #gameInstance.questionsANDanswers.currentQuestionBoard[gameInstance.playerGuess[0]][gameInstance.playerGuess[1]]
             response = {"Action": "YourTurn", "Value": "Choose a question. (Enter like <ColNumber,RowNumber>)"}
             currentMessageObj.response = currentMessageObj.create_server_message(response)
             currentMessageObj.create_message()
@@ -233,10 +216,6 @@ def LiveGame():
 
 def GameOver():
     "Checks if the question board is empty, then assigns a winner and closes the server if this was the case"
-    #testGameOverArray
-    # ^^^^^ this test array makes it easier to test if game is over
-    # gameInstance.questionsANDanswers.currentQuestionBoard
-    # ^^^^ use for actual game over check
     broadcastMsg("Game over! Now determining the winner...", "Broadcast")
     mostPoints = gameInstance.playerList[0].get_points()
     bestPlayer = gameInstance.playerList[0]
@@ -249,30 +228,11 @@ def GameOver():
             endMessage = "There was a tie! Both " + bestPlayer.get_name() + " and " + player.get_name() + " have the same number of points!"
     endMessage = "The player with the most points is: " + bestPlayer.get_name() + " with " + str(mostPoints) + " points! " + bestPlayer.get_name() + " wins!" 
     broadcastMsg(endMessage, "Broadcast")
-
-
-        #play again       
-        # for message in messageList:
-        #     response = {"Action": "AskPlayAgain", "Value": "Would you like to play again or would you like to quit?"}
-        #     message.response = message.create_server_message(response)
-        #     message.create_message()
-        #     message.toggleReadWriteMode('w')
-        #     message.request = None
-        #     message.write()
-        
-        # for player in gameInstance.playerList:
-        #     selector.unregister(player.get_addrANDport)
-        # for sock in sockList:
-        #     sock.close()   
     exit() 
 
 def packGame():
     playerString = ""
     for player in gameInstance.playerList:
-        # playerObj = {
-        #     "name" : player.get_name(),
-        #     "points" : player.get_points()
-        # }
         playerString += (player.get_name() + ": " + str(player.get_points()) + ": ")
     
     playerString = playerString[:-1]
@@ -314,7 +274,6 @@ try:
         for key, value in events:
             if key.data is None: 
                 accept_connection(key.fileobj)
-            # Need to figure out the correct elif to not call processRequest unless game data is in Message
             elif len(gameInstance.playerList) == MAX_NUM_CLIENTS:     
                 processRequest(handle_incoming_data(key, value), key.data)
                 gameInstance.checkIfGameStart()
