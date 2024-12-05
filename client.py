@@ -108,23 +108,25 @@ def process_response(actionValue, message):
             prettyPrintBoard(gameInstance.questionsANDanswers.pprintBoard)
             print(message.response["Value"])
             value = input()
-            if ',' in value:
+            if value == "Quit":
+                request = create_request(action=value, value="")
+            else:
+                while ',' not in value:
+                    value = input("Please try again like <RowNum,ColNum> no spaces\n")
                 x,y = value.split(',')
                 while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
                     print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
                     value = input()
                     x,y = value.split(',')
-            if value == "Quit":
-                request = create_request(action=value, value="")
-            else:
-                action = "PlayerSelection"
-                request = create_request(action, value)
+                else:
+                    action = "PlayerSelection"
+                    request = create_request(action, value)
             message.set_client_request(request)
             message.write()
         elif action == "IndicateDuplicate":
             print(value)
         elif action == "SelectedQuestion":
-            print("Please answer this question:", message.response["Value"])
+            print("Please answer this question (case insensitive, no extra white spaces):", message.response["Value"])
             value = input()
             if value == "Quit":
                 request = create_request(action=value, value="")
@@ -186,7 +188,10 @@ for opt, arg in opts:
 
 try:
     message = startConnection(host, port)
-    action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space: ").split(", ")
+    inputVal = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space: ")
+    while "ready," not in inputVal.lower():
+        inputVal = input("Please enter \"Ready\" followed by a single comma and space, then your name:\n")
+    action, value = inputVal.split(", ")
     request = create_request(action, value)
     message.set_client_request(request)
     message.write()
