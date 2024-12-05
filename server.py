@@ -109,7 +109,7 @@ def processRequest(actionValue, message):
             
     action, value = actionValue.split(", ")
 
-    if action == "Ready":
+    if action.lower() == "Ready".lower():
         for player in gameInstance.playerList:
             if player.get_addrANDport() == message.addr:
                 player.setReadyState(True)

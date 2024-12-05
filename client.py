@@ -1,16 +1,12 @@
 import sys
 import socket
 import selectors
-import types
-import traceback
-import struct
 import logging
 import linecache
-import Player
 import Message
-import time
 import getopt
 import Jeopardy
+import re
 
 logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO)
 sel = selectors.DefaultSelector()
@@ -71,7 +67,7 @@ def create_request(action, value=None):
 
     if action == "Ready": common_dict["Content"] = {"Action": action, "Value": value}
     if value : common_dict["Content"] = {"Action": action, "Value": value}
-    if action == "Quit": common_dict["Content"] = {"Action": action, "Value": value}
+    if action.lower() == "Quit".lower(): common_dict["Content"] = {"Action": action, "Value": value}
     return common_dict
 
 def process_response(actionValue, message):
@@ -79,7 +75,7 @@ def process_response(actionValue, message):
         return
     
     alldata = actionValue.split(", ")
-
+    rowColRegex = r"^[1-5],[1-5]$"
     while alldata:
         action = alldata[0]
         value = alldata[1]
@@ -107,20 +103,21 @@ def process_response(actionValue, message):
         elif action == "YourTurn":
             prettyPrintBoard(gameInstance.questionsANDanswers.pprintBoard)
             print(message.response["Value"])
-            value = input()
-            if value == "Quit":
+            value = input().strip()
+            if value.lower() == "Quit".lower():
                 request = create_request(action=value, value="")
             else:
                 while ',' not in value:
-                    value = input("Please try again like <RowNum,ColNum> no spaces\n")
+                    value = input("Please try again like <RowNum,ColNum> no spaces\n").strip()
+                while re.match(rowColRegex, value) == None:
+                    value = input("Please try again like <RowNum,ColNum> no spaces\n").strip()
                 x,y = value.split(',')
-                while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
-                    print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
-                    value = input()
-                    x,y = value.split(',')
-                else:
-                    action = "PlayerSelection"
-                    request = create_request(action, value)
+                # while (int(x) < 1 or int(x) >5) or (int(y) < 1 or int(y) > 5):
+                #     print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
+                #     value = input().strip()
+                #     x,y = value.split(',')
+                action = "PlayerSelection"
+                request = create_request(action, value)
             message.set_client_request(request)
             message.write()
         elif action == "IndicateDuplicate":
@@ -128,7 +125,7 @@ def process_response(actionValue, message):
         elif action == "SelectedQuestion":
             print("Please answer this question (case insensitive, no extra white spaces):", message.response["Value"])
             value = input()
-            if value == "Quit":
+            if value.lower() == "Quit".lower():
                 request = create_request(action=value, value="")
             else:
                 action = "PlayerAnswer"
@@ -143,7 +140,7 @@ def process_response(actionValue, message):
         elif action == "AskPlayAgain":
             print(message.response["Value"])
             value = input()
-            if value == "Quit":
+            if value.lower() == "Quit".lower():
                 request = create_request(action=value, value="")
             else:
                 action = "YesPlayAgain"
@@ -153,7 +150,7 @@ def process_response(actionValue, message):
 
         alldata = alldata[2:]
 
-        if value == "Quit": exit()
+        if value.lower() == "Quit".lower(): exit()
         action = None
         value = None
 
