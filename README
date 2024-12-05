@@ -78,3 +78,9 @@ provideQuestion, validateAnswer, provideAnswer
 3. Potential Socket Exploits - We can add rate-limiting to limit the amount of data being sent to prevent potential flooding.
 4. Hardcoded Error Messages - We can be more general about our error messages to avoid revealing unecessary details to a potential attacker.
 5. Code Injection - We can implement escape mechanisms and strictly enforce handling of strings.
+
+# Roadmap - Insert each person's thoughts on where we would like to take the project
+
+# Retrospective - Insert each person's thoughts on the overall project
+1. What went right in the overall project
+2. What could be improved on in the overall project. 
