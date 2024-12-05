@@ -16,6 +16,7 @@ logging.basicConfig(filename='logs/Client.log', filemode='w', level=logging.INFO
 sel = selectors.DefaultSelector()
 gameInstance = Jeopardy.Jeopardy()
 
+
 def startConnection(host, port):
     """Starts and registers a socket with the server"""
     serverAddress = (host, port)
@@ -24,7 +25,7 @@ def startConnection(host, port):
     logging.info('Starting connection to '.join((host, str(port))))
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setblocking(False)  # Ensure non-blocking mode
+    sock.setblocking(False)
     errorNumber = sock.connect_ex(serverAddress)
 
     if errorNumber == 0 or errorNumber == 115:
@@ -56,7 +57,6 @@ def startConnection(host, port):
         logging.info('Unable to connect. Error code: ' + errorLine)
         exit()
 
-    # Register the socket for normal operations
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = Message.Message(sel, sock, serverAddress, role='client')
     sel.register(sock, events, data=message)
@@ -83,28 +83,29 @@ def process_response(actionValue, message):
     while alldata:
         action = alldata[0]
         value = alldata[1]
-    
-    #################################
-    #process the response from server
-    #################################
+        
         if action == "Ready":
             print(value, "Now waiting for other players...")
             message.toggleReadWriteMode("r")
         elif action == "Broadcast":
-            if "The player with the most points is:" in value:
+            if "The player with the most points is: " in value:
                 print(value)
                 exit()
             if "Now exiting" in value:
                 print(value)
                 exit()
+            if "#" in value:
+                value = value[1:]
+                x,y, name = value.split(",")
+                print("Player " + name + " has answered question at location " + str(x) + "," + str(y))
+                gameInstance.questionsANDanswers.pprintBoard[int(x)][int(y)] = "Empty"
             print(value)
             message.toggleReadWriteMode("r")
         elif action == "Update":
-            #print("Player list is: ", message.response["Value"]["playerList"]
             print("Player scores are: ", value)
-                
             message.toggleReadWriteMode('r')
         elif action == "YourTurn":
+            prettyPrintBoard(gameInstance.questionsANDanswers.pprintBoard)
             print(message.response["Value"])
             value = input()
             if ',' in value:
@@ -113,7 +114,6 @@ def process_response(actionValue, message):
                     print("Row/Column number is invalid. Please choose numbers in the range of 1-5")
                     value = input()
                     x,y = value.split(',')
-            
             if value == "Quit":
                 request = create_request(action=value, value="")
             else:
@@ -122,7 +122,7 @@ def process_response(actionValue, message):
             message.set_client_request(request)
             message.write()
         elif action == "SelectedQuestion":
-            print("Please answer this question: \n", message.response["Value"])
+            print("Please answer this question:", message.response["Value"])
             value = input()
             if value == "Quit":
                 request = create_request(action=value, value="")
@@ -147,19 +147,20 @@ def process_response(actionValue, message):
             message.set_client_request(request)
             message.write()
 
-        #if len(alldata) > 2:
         alldata = alldata[2:]
-        #if len(alldata) == 2:
-         #   alldata = None
 
         if value == "Quit": exit()
         action = None
         value = None
 
-    #message.response = None
-
-# Parse Command line args
+def prettyPrintBoard(pprintBoard):
+    print("-----------------------------------------")
+    for row in pprintBoard:
+        print("| " + " | ".join(f"{num:>5}" for num in row) + " |")
+        print("-----------------------------------------")
+        
 argv = sys.argv[1:]
+
 try: 
     opts, args = getopt.getopt(argv, "i:p:hn") 
 except (getopt.GetoptError, NameError): 
@@ -183,7 +184,7 @@ for opt, arg in opts:
 
 try:
     message = startConnection(host, port)
-    action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space ").split(", ")
+    action, value = input("When you are ready to start the game please type \"Ready\" and your name, separated with a single comma and space: ").split(", ")
     request = create_request(action, value)
     message.set_client_request(request)
     message.write()
