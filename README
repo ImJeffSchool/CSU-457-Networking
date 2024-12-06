@@ -3,11 +3,14 @@
 This is a simple Game show example implemented using Python and sockets.
 
 # How to play:
-1. **Start the server:** Run the `server.py` script. Starts a pre-game lobby, and awaits 2 players to connect and ready up. Please ensure that both players are connected before readying-up. An Example of this would look like:
+1. **Start the server:** Run the `server.py` script. Starts a pre-game lobby, and awaits 2 players to connect and ready up. Please ensure that both players are connected before readying-up. 
+An Example of this would look like:
 "python server.py -p 54321" - Where -p is the specified port number.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals. Once a player connects, they may adjust game settings and ready up. An example of this would look like:
 "python client.py -i 123.45.67.89 -p 54321" - Where -i is the client's IP address and -p is the port number connecting to the server. Ensure that when connecting both clients have different IP addresses.
-3. **Play the game:** Jeopardy style game where one Player will select a question from the board and given the chance to answer the question, If the first player doesn't answer the question correctly, it then goes over to the next player where they now have the chance to answer the question for points. Players take turns answering their selected questions, being awarded respective points. The game will continue to play until all questions are answered on the board. Whichever player has the most amount of points at the end will be deemed the victor.
+3. **Play the game:** Jeopardy style game where one Player will select a question from the board and given the chance to answer the question, If the first player doesn't answer the question correctly, 
+it then goes over to the next player where they now have the chance to answer the question for points. Players take turns answering their selected questions, being awarded respective points. 
+The game will continue to play until all questions are answered on the board. Whichever player has the most amount of points at the end will be deemed the victor.
 
 # Message Protocol:
 1. Players who get connected to the server must then ready up or quit. 
@@ -79,8 +82,15 @@ provideQuestion, validateAnswer, provideAnswer
 4. Hardcoded Error Messages - We can be more general about our error messages to avoid revealing unecessary details to a potential attacker.
 5. Code Injection - We can implement escape mechanisms and strictly enforce handling of strings.
 
-# Roadmap - Insert each person's thoughts on where we would like to take the project
+# Roadmap - Our future plans if we could continue working on this project would be for us to implement a GUI for the game. This would include a starting menu for the players to be able to start the game,
+along with a help button for users to be able to press in case they need help wondering how to play the game. To go with the GUI we would make it more of a traditional style game to where we would have columns for 
+specific types of questions such as "History", "Math", "Geography", etc. After that we would include a random "Double Points" round hidden within our game to where a player might randomly pick a topic and point value
+where that value for that question could be potentially doubled.
 
-# Retrospective - Insert each person's thoughts on the overall project
-1. What went right in the overall project
-2. What could be improved on in the overall project. 
+# Retrospective
+1. What went right in the overall project - We thought our planning stage on getting the game originally setup was well done, we had our server and client communicating back and forth pretty well to where it emulated 
+a turn-based game. Additionally, our team worked fairly well together in that we would meet in person and over discord frequently to knock out alot of the work and bugs we had in our project. Lastly we think that by having
+creative freedom for this project let us make a game that is unique but close enough to a game that people would understand how to play it as well. 
+2. What could be improved on in the overall project - Some things that can be improved on in the overall project would be to initially have a clear set way of how we should start the game and have clients connect. I 
+know that during one of the sprints we were told that the game needed to start by having it explicitly set as "server.py -p 54321" and "client.py -i 0.0.0.0 -p 54321" which in our case we had to just tweak the server
+code for these commands, but I know for a few other teams that this wasn't the case and they needed to refactor alot of their code for this to work. 
