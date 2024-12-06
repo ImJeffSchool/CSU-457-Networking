@@ -93,4 +93,6 @@ a turn-based game. Additionally, our team worked fairly well together in that we
 creative freedom for this project let us make a game that is unique but close enough to a game that people would understand how to play it as well. 
 2. What could be improved on in the overall project - Some things that can be improved on in the overall project would be to initially have a clear set way of how we should start the game and have clients connect. I 
 know that during one of the sprints we were told that the game needed to start by having it explicitly set as "server.py -p 54321" and "client.py -i 0.0.0.0 -p 54321" which in our case we had to just tweak the server
-code for these commands, but I know for a few other teams that this wasn't the case and they needed to refactor alot of their code for this to work. 
+code for these commands, but I know for a few other teams that this wasn't the case and they needed to refactor alot of their code for this to work. Additionally, our team wanted to add a GUI to go along with the functionality of the game.
+Initally we had tried acomplishing this through the use of the tkinter python package. However, this package ended up having a different functionality than we had initially anticipated, and as a result, we ended up scrapping the code for the GUI. 
+Also, according to our Wiki, we wanted to implement encryption within our project, but due to major refactoring of our code, time constraints became much more of a facor and we ended up not achieving this goal
